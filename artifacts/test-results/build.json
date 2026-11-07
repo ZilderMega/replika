@@ -2,11 +2,11 @@
   "version": "0.6.0",
   "date": "2026-11-07",
   "apk": "replika-0.6-bundled-debug.apk",
-  "sha256": "e8650bc802dec4ec502bb6ae34cce3e8ab69713f6879521e87e6da3c80433f28",
-  "bytes": 791257419,
-  "android_tests": 24,
-  "jvm_tests": 37,
-  "evaluator_tests": 5,
-  "tested_device": "sdk_gphone64_x86_64",
-  "note": "ARM64/x86_64 debug build. Emulator: 24 unique Android scenarios across full and focused runs; see docs/TEST_RESULTS.md for initial failure and four passing UI checks after fixes."
+  "sha256": "2364d7488baccfb302145ad6e622d4e4faf82c6325bac468f1ece0fa260ced2a",
+  "bytes": 791051596,
+  "jvm_tests": 41,
+  "evaluator_tests": 6,
+  "final_samsung_tests": 4,
+  "voice_matcher_version": 3,
+  "note": "Final Samsung v3: annotated AMI, two continuity/recalculation tests, editor split. Earlier full emulator and physical benchmarks are separate runs; see docs/TEST_RESULTS.md. Standalone ARM64/x86_64 APK includes all models."
 }

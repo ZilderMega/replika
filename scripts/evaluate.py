@@ -83,7 +83,9 @@ def diarization(reference, hypothesis, collar_ms=0, ignore_overlap=False):
         for a in actual:
             for e in expected:
                 weights[a, e] += length
-    mapping = optimal_mapping(weights, sorted({row["speaker_id"] for row in hypothesis}), sorted({row["speaker_id"] for row in reference}))
+    # Abstention is not an anonymous identity that may earn credit through optimal relabeling.
+    mapping = optimal_mapping(weights, sorted({row["speaker_id"] for row in hypothesis if row["speaker_id"] != "speaker_unknown"}),
+                              sorted({row["speaker_id"] for row in reference}))
     missed = false = confusion = total = 0
     for expected, actual, length in frames:
         matched = len(expected & {mapping.get(speaker) for speaker in actual})

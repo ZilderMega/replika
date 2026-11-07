@@ -1,0 +1,10 @@
+{
+  "fast_ms_including_long_text": 362,
+  "fast_first_including_load_ms": 273,
+  "fast_warm_average_ms": 0.7,
+  "llm_first_including_load_ms": 1394,
+  "llm_warm_ms": 217,
+  "llm_ms_three_short_calls": 2078,
+  "fast_text": "Шестьдесят тысяч рублей, сколько будет стоить?",
+  "llm_text": "Шестьдесят тысяч рублей стоить будет стоить."
+}

@@ -13,13 +13,17 @@ def sha256(path):
 
 def main():
     files = subprocess.check_output(['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'], cwd=ROOT).decode().split('\0')
-    selected = {name for name in files if name and not name.startswith(('artifacts/', '.idea/', '.deps/', '.models/')) and name != 'local.properties'}
+    selected = {name for name in files if name and not name.startswith(('artifacts/', '.idea/', '.deps/', '.models/', '.private-validation/')) and name != 'local.properties'}
     selected.add('artifacts/replika-0.6-bundled-debug.apk')
     for folder in ('demo', 'test-results'):
         selected.update(p.relative_to(ROOT).as_posix() for p in (ROOT / 'artifacts' / folder).rglob('*') if p.is_file())
     # Never silently ship a missing source file or an earlier APK.
     apk = ROOT / 'artifacts/replika-0.6-bundled-debug.apk'
     assert sha256(apk) == sha256(ROOT / 'app/build/outputs/apk/debug/app-debug.apk'), 'Rebuild/copy final APK first'
+    with zipfile.ZipFile(apk) as bundle:
+        models = json.loads(bundle.read('assets/models/manifest.json'))['sha256']
+        assert all('assets/models/' + name in bundle.namelist() for name in models), 'Submission requires the full model bundle, not a code-only debug update'
+    assert not any('.private-validation/' in name for name in selected)
     manifest = {name: sha256(ROOT / name) for name in sorted(selected)}
     output = ROOT / 'artifacts/replika-0.6-submission.zip'
     with zipfile.ZipFile(output, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:

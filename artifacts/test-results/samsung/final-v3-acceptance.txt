@@ -1,0 +1,8 @@
+
+team.replika.PhysicalValidationTest:.
+team.replika.VoiceContinuityTest:..
+team.replika.EditorUiTest:.
+
+Time: 47,841
+
+OK (4 tests)

@@ -16,11 +16,12 @@ data class VoiceObservation(val localId: Int, val intervals: List<LongRange>, va
 
 /** Anonymous voice clustering, not proof of a person's identity. Similarity thresholds need corpus calibration. */
 object VoiceMatcher {
-    const val VERSION = 1
+    const val VERSION = 3
     private const val MATCH = .74f
     private const val FIRST_PROFILE_MATCH = .80f
     private const val MARGIN = .08f
-    private const val SAME_LOCAL_VOICE = .88f
+    // Separate native clusters are evidence of a turn. Merge them only with near-identical clean voices.
+    private const val SAME_LOCAL_VOICE = .95f
     private const val CLEAR_NEW_VOICE = .50f
 
     fun normalize(vector: FloatArray): FloatArray? {

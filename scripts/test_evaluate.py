@@ -7,6 +7,11 @@ def row(speaker, start, end, text):
 
 
 class EvaluationTests(unittest.TestCase):
+    def test_unknown_speaker_never_earns_identity_credit(self):
+        result = evaluate([row("one", 0, 1000, "да")], [row("speaker_unknown", 0, 1000, "да")])
+        self.assertEqual(0, result['wer'])
+        self.assertEqual(1, result['der'])
+        self.assertNotIn('speaker_unknown', result['speaker_mapping'])
     def test_speaker_ids_are_permutation_invariant(self):
         reference = [row("one", 0, 1000, "Привет, мир!"), row("two", 1000, 2000, "Да")]
         hypothesis = [row("b", 0, 1000, "привет мир"), row("a", 1000, 2000, "да")]

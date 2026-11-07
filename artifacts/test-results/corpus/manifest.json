@@ -1,0 +1,66 @@
+{
+  "clips": [
+    {
+      "id": "english-0",
+      "fixture": "english.wav",
+      "category": "real_public_monologue",
+      "language": "en",
+      "reference_text": "AFTER EARLY NIGHTFALL THE YELLOW LAMPS WOULD LIGHT UP HERE AND THERE THE SQUALID QUARTER OF THE BROTHELS",
+      "reference_source": "Published trans.txt inside the pinned sherpa-onnx-whisper-tiny archive",
+      "archive_sha256": "c46116994e539aa165266d96b325252728429c12535eb9d8b6a2b10f129e66b1",
+      "local_source": ".models\\sherpa-onnx-whisper-tiny\\test_wavs\\0.wav",
+      "sha256": "6bc58a4efdf20daac252b6b1502632601a71efe0308f6757dc1eda34891a7e4f",
+      "duration_ms": 6625,
+      "range_start_ms": 0,
+      "range_end_ms": 6625,
+      "range_scope": "entire_file",
+      "speaker_count": 1,
+      "speech_boundary_reference": false,
+      "diarization_reference": false,
+      "allowed_metric": "WER only; full-file ranges are not manually annotated speech boundaries"
+    },
+    {
+      "id": "english-1",
+      "fixture": "english-second.wav",
+      "category": "real_public_monologue",
+      "language": "en",
+      "reference_text": "GOD AS A DIRECT CONSEQUENCE OF THE SIN WHICH MAN THUS PUNISHED HAD GIVEN HER A LOVELY CHILD WHOSE PLACE WAS ON THAT SAME DISHONOURED BOSOM TO CONNECT HER PARENT FOR EVER WITH THE RACE AND DESCENT OF MORTALS AND TO BE FINALLY A BLESSED SOUL IN HEAVEN",
+      "reference_source": "Published trans.txt inside the pinned sherpa-onnx-whisper-tiny archive",
+      "archive_sha256": "c46116994e539aa165266d96b325252728429c12535eb9d8b6a2b10f129e66b1",
+      "local_source": ".models\\sherpa-onnx-whisper-tiny\\test_wavs\\1.wav",
+      "sha256": "5143a6ba93c4b274e2c4ac22deb75c2c48936c853f0519add1de828b6c79cc5a",
+      "duration_ms": 16715,
+      "range_start_ms": 0,
+      "range_end_ms": 16715,
+      "range_scope": "entire_file",
+      "speaker_count": 1,
+      "speech_boundary_reference": false,
+      "diarization_reference": false,
+      "allowed_metric": "WER only; full-file ranges are not manually annotated speech boundaries"
+    },
+    {
+      "id": "public-two-speakers",
+      "category": "real_public_dialogue",
+      "fixture": "two-speakers.wav",
+      "source": "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-segmentation-models/1-two-speakers-en.wav",
+      "sha256": "f1c877dc01595e28be7147bf2fe38e5268147a868bf3fdb5c37b97f5940e21f3",
+      "duration_ms": 16000,
+      "reference_text": null,
+      "diarization_reference": false,
+      "allowed_metric": "Functional continuity checks only; no independent DER reference"
+    },
+    {
+      "id": "noise-derived",
+      "category": "synthetic_noise_on_real_speech",
+      "fixture": "noisy-test.wav",
+      "independent_reference": false
+    },
+    {
+      "id": "overlap-derived",
+      "category": "synthetic_mix_of_two_real_recordings",
+      "fixture": "overlap.wav",
+      "independent_reference": false
+    }
+  ],
+  "private_audio_policy": "Private interviews and transcripts stay outside Git in .private-validation; draft ASR is not reference text"
+}

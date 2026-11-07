@@ -39,6 +39,7 @@ class VoiceContinuityTest {
                                 onBlock = { state.save(); throw BlockSaved() }) {}
                         } catch (_: BlockSaved) { }
                         val firstIds = state.spans.map { it.id }.filter { it >= 0 }.toSet()
+                        val firstSpans = state.spans.toList()
                         state = PipelineCheckpoint.load(directory)
                         LongDiarization.process(pcm, model, models, 2, blockSeconds = 6, checkpoint = state, onBlock = { state.save() }) {}
                         val ids = state.spans.map { it.id }.filter { it >= 0 }.toSet()
@@ -50,6 +51,9 @@ class VoiceContinuityTest {
                         File(context.filesDir, "voice-continuity.json").writeText(proof.toString(2))
                         assertEquals("$fixture: $proof", expected, ids.size)
                         assertTrue(ids.containsAll(firstIds))
+                        assertEquals(firstSpans, state.spans.take(firstSpans.size))
+                        val firstProvisional = firstSpans.map { it.id }.filter { it < -1 }.toSet()
+                        assertTrue(state.spans.drop(firstSpans.size).none { it.id in firstProvisional })
                         assertEquals(pcm.samples, state.diarizedSamples)
                         assertTrue("Known voice coverage: $proof", knownMs > unknownMs)
                     } finally { model.release() }

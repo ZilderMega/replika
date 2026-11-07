@@ -13,6 +13,7 @@ fun skipPlayback(positionMs: Int, deltaMs: Int, durationMs: Int): Int =
     (positionMs.toLong() + deltaMs.toLong()).coerceIn(0L, durationMs.coerceAtLeast(0).toLong()).toInt()
 
 fun speakerLabel(id: String): String {
+    if (id.startsWith("speaker_review_")) return "Проверить голос ${id.removePrefix("speaker_review_")}"
     val number = id.removePrefix("speaker_").toIntOrNull()
     return if (id.startsWith("speaker_") && number != null && number > 0) "Спикер $number" else "Неизвестный участник"
 }

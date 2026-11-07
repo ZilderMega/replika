@@ -1,0 +1,80 @@
+{
+  "id": "ami-es2002a-49-110",
+  "category": "real_public_four_speaker_meeting",
+  "audio_source": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/HeadsetAudio/ES2002a.Mix-Headset.wav",
+  "labels_source": "https://raw.githubusercontent.com/pyannote/AMI-diarization-setup/main/only_words/rttms/train/ES2002a.rttm",
+  "labels_provenance": "Only-words RTTM derived from AMI manual annotations 1.6.2",
+  "source_start_ms": 49000,
+  "duration_ms": 61000,
+  "audio_sha256": "5e6c718a24550534642cc6ab7925d6d3a1a5139506a7196742ac0a6058c03d8c",
+  "source_rttm_sha256": "3153efc675b16b7c47c6e49a3b48602613b3dfcf0ca16f590fb7541176c0f0b2",
+  "diarization_reference": [
+    {
+      "speaker_id": "FEE005",
+      "start_ms": 1420,
+      "end_ms": 1990
+    },
+    {
+      "speaker_id": "FEE005",
+      "start_ms": 4560,
+      "end_ms": 4960
+    },
+    {
+      "speaker_id": "FEE005",
+      "start_ms": 6980,
+      "end_ms": 28290
+    },
+    {
+      "speaker_id": "MEE008",
+      "start_ms": 18210,
+      "end_ms": 18450
+    },
+    {
+      "speaker_id": "MEE008",
+      "start_ms": 25890,
+      "end_ms": 26240
+    },
+    {
+      "speaker_id": "MEE006",
+      "start_ms": 28440,
+      "end_ms": 31870
+    },
+    {
+      "speaker_id": "FEE005",
+      "start_ms": 31810,
+      "end_ms": 32260
+    },
+    {
+      "speaker_id": "MEE008",
+      "start_ms": 33080,
+      "end_ms": 35460
+    },
+    {
+      "speaker_id": "MEE007",
+      "start_ms": 36990,
+      "end_ms": 39710
+    },
+    {
+      "speaker_id": "MEE008",
+      "start_ms": 37070,
+      "end_ms": 37500
+    },
+    {
+      "speaker_id": "FEE005",
+      "start_ms": 40300,
+      "end_ms": 52760
+    },
+    {
+      "speaker_id": "FEE005",
+      "start_ms": 55890,
+      "end_ms": 57580
+    },
+    {
+      "speaker_id": "FEE005",
+      "start_ms": 59960,
+      "end_ms": 61000
+    }
+  ],
+  "transcript_reference": false,
+  "scope": "Development diagnostic; no unseen-corpus or official score claim"
+}

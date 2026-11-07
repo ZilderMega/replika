@@ -71,7 +71,6 @@ private fun App() {
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
     var showFormatted by remember(selectedId) { mutableStateOf(true) }
     var showReviewed by remember(selectedId) { mutableStateOf(true) }
-    var normalizeTerms by rememberSaveable { mutableStateOf(true) }
     var search by remember(selectedId) { mutableStateOf("") }
     var onlyUncertain by remember(selectedId) { mutableStateOf(false) }
     var options by remember { mutableStateOf(ProcessingOptions()) }
@@ -116,11 +115,10 @@ private fun App() {
     val live = activeState?.preview
     val rawJson = remember(live, selected?.transcript) { live?.raw?.toJson() ?: selected?.transcript }
     val formattedJson = remember(live, selected?.formatted) { live?.formatted?.toJson() ?: selected?.formatted }
-    val displayTranscript = remember(rawJson, formattedJson, selected?.edited, showFormatted, showReviewed, normalizeTerms) {
+    val displayTranscript = remember(rawJson, formattedJson, selected?.edited, showFormatted, showReviewed) {
         try {
             val source = if (showReviewed && selected?.edited != null) selected.edited else if (showFormatted) formattedJson ?: rawJson else rawJson
-            val transcript = PipelineCheckpoint.transcript(JSONObject(source ?: "{}"))
-            if (normalizeTerms && (showFormatted || showReviewed && selected?.edited != null)) TranscriptTools.withTerms(transcript) else transcript
+            PipelineCheckpoint.transcript(JSONObject(source ?: "{}"))
         } catch (_: Exception) { Transcript(emptyList()) }
     }
     val displayJson = remember(displayTranscript) { displayTranscript.toJson() }
@@ -338,8 +336,7 @@ private fun App() {
                             Text(if (engineState.busy || activeState?.resumable == true) "Промежуточная стенограмма" else "Стенограмма", fontFamily = FontFamily.Serif, fontSize = 29.sp)
                             if (engineState.busy) Text("Текст появляется по мере обработки. Участники и пунктуация уточняются на следующих этапах.", color = muted)
                             Row(verticalAlignment = Alignment.CenterVertically) { Switch(checked = showFormatted, onCheckedChange = { showFormatted = it }, enabled = formattedJson != null); Spacer(Modifier.width(10.dp)); Text("Пунктуация", fontSize = 16.sp) }
-                            Row(verticalAlignment = Alignment.CenterVertically) { Switch(normalizeTerms, { normalizeTerms = it }); Spacer(Modifier.width(10.dp)); Text("Названия: Java, YouTube") }
-                            Text("Словарь названий меняет только отображаемую версию. Для других слов выберите реплику и уточнение через Whisper.", color = muted, fontSize = 13.sp)
+                            Text("Если слово распознано неверно, прослушайте реплику и уточните выбранный участок через многоязычную модель.", color = muted, fontSize = 13.sp)
                             if (selected.edited != null) Row(verticalAlignment = Alignment.CenterVertically) { Switch(showReviewed, { showReviewed = it }); Spacer(Modifier.width(10.dp)); Text("Мои правки") }
                             if (!engineState.busy && selected.transcript != null && activeState?.useLlm != true && activeState?.resumable != true) {
                                 OutlinedButton(onClick = { beginProcessing(true) }, enabled = engineState.modelsReady) { Text("Обработать пунктуацию LLM") }

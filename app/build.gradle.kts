@@ -25,8 +25,14 @@ android {
 val modelNames = listOf("encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt", "segmentation.onnx", "embedding.onnx", "llm.gguf",
     "punctuation.onnx", "punctuation-tokenizer.json", "punctuation-config.json", "denoise.onnx", "vad.onnx",
     "whisper-encoder.onnx", "whisper-decoder.onnx", "whisper-tokens.txt", "separation.onnx", "manifest.json")
+// Development-only code update over slow wireless ADB. Requires the exact, verified model bundle already installed.
+// The normal build remains self-contained; never submit the APK built with this property.
+val reuseInstalledModels = providers.gradleProperty("reuseInstalledModels").map { it.toBoolean() }.getOrElse(false)
+check(!reuseInstalledModels || gradle.startParameter.taskNames.none { it.contains("release", ignoreCase = true) }) {
+    "reuseInstalledModels is only for local debug device checks"
+}
 val bundleModels by tasks.registering(Sync::class) {
-    from(rootProject.file(".models")) { include(modelNames) }
+    from(rootProject.file(".models")) { include(if (reuseInstalledModels) listOf("manifest.json") else modelNames) }
     into(layout.buildDirectory.dir("generated/modelAssets/models"))
     doFirst {
         modelNames.forEach { name ->

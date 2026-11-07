@@ -19,6 +19,10 @@ import java.io.File
 class EditorUiTest {
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     private val context get() = instrumentation.targetContext
+    private fun tree(): List<AccessibilityNodeInfo> {
+        if (android.os.Build.VERSION.SDK_INT >= 34) instrumentation.uiAutomation.clearCache()
+        return nodes(instrumentation.uiAutomation.rootInActiveWindow)
+    }
     private fun nodes(root: AccessibilityNodeInfo?): List<AccessibilityNodeInfo> {
         if (root == null) return emptyList()
         return listOf(root) + (0 until root.childCount).flatMap { nodes(root.getChild(it)) }
@@ -66,10 +70,26 @@ class EditorUiTest {
             delay(500)
             val textFields = nodes(ui.rootInActiveWindow).filter { it.isEditable }
             assertTrue(textFields.size >= 4)
-            val changed = "Ручная правка: Java и YouTube."
+            val changed = "Ручная правка стенограммы."
             assertTrue(textFields.last().performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, Bundle().apply {
                 putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, changed)
             }))
+            delay(300)
+            click(requireNotNull(tree().firstOrNull { it.text?.toString() == "Разделить реплику" }))
+            delay(300)
+            val splitAt = requireNotNull(ProcessingService.mutable.value.result).raw.utterances.first().let { (it.startMs + it.endMs) / 2 }
+            val afterExpansion = tree().filter { it.isEditable }
+            val body = requireNotNull(afterExpansion.firstOrNull { it.text?.toString()?.contains(changed) == true })
+            val cursor = changed.indexOf(' ') + 1
+            assertTrue(body.performAction(AccessibilityNodeInfo.ACTION_SET_SELECTION, Bundle().apply {
+                putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_START_INT, cursor)
+                putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_END_INT, cursor)
+            }))
+            assertTrue(afterExpansion.last().performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, Bundle().apply {
+                putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, splitAt.toString())
+            }))
+            delay(300)
+            click(requireNotNull(tree().firstOrNull { it.text?.toString() == "Создать две реплики" }))
             delay(300)
             ui.takeScreenshot().let { bitmap ->
                 File(context.filesDir, "editor-screen.png").outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
@@ -79,8 +99,12 @@ class EditorUiTest {
             delay(600)
             val record = JSONArray(prefs.getString("items", "[]")).let { rows -> (0 until rows.length()).map { rows.getJSONObject(it) }.first { it.getString("id") == id } }
             assertEquals(original, record.getString("transcript"))
-            assertTrue(record.getString("edited").contains(changed))
+            val reviewed = team.replika.engine.PipelineCheckpoint.transcript(JSONObject(record.getString("edited")))
+            assertEquals(changed, reviewed.utterances.take(2).joinToString(" ") { it.text })
+            assertEquals(splitAt, reviewed.utterances[0].endMs)
+            assertEquals(splitAt, reviewed.utterances[1].startMs)
             File(context.filesDir, "editor-proof.json").writeText(JSONObject().put("original_unchanged", true)
+                .put("manual_split", true).put("split_ms", splitAt)
                 .put("raw", JSONObject(original)).put("reviewed", JSONObject(record.getString("edited"))).toString(2))
         } finally {
             if (ProcessingService.mutable.value.busy && ProcessingService.mutable.value.sessionId == id) {

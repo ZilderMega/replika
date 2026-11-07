@@ -58,9 +58,14 @@ object LongDiarization {
                     observations += VoiceObservation(id, owned, vectors, support)
                 }
                 val mapping = VoiceMatcher.assign(observations, profiles, expectedSpeakers)
+                // A failed global match is not evidence that distinct local voices are one person.
+                // Keep provisional identities unique across committed blocks, including after resume.
+                var provisional = minOf(-1, spans.minOfOrNull { it.id } ?: -1)
+                val unresolved = local.map { it.speaker }.distinct().filter { it !in mapping }
+                    .associateWith { --provisional }
                 val ms = audioStart / 16
                 spans += local.mapNotNull { segment ->
-                    val id = mapping[segment.speaker] ?: -1
+                    val id = mapping[segment.speaker] ?: unresolved.getValue(segment.speaker)
                     val start = maxOf(offset / 16, ms + (segment.start * 1000).toLong())
                     val end = minOf((offset + count) / 16, ms + (segment.end * 1000).toLong())
                     if (end > start) SpeakerSpan(start, end, id) else null

@@ -6,14 +6,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import team.replika.engine.clockText
 
-private data class DraftLine(val speaker: String, val start: String, val end: String, val text: String) {
+private data class DraftLine(val speaker: String, val start: String, val end: String, val text: TextFieldValue) {
     fun parse() = Utterance(speaker.trim(), start.toLongOrNull() ?: error("Начало — целое число миллисекунд"),
-        end.toLongOrNull() ?: error("Конец — целое число миллисекунд"), text.trim())
+        end.toLongOrNull() ?: error("Конец — целое число миллисекунд"), text.text.trim())
 }
-private fun Utterance.draft() = DraftLine(speakerId, startMs.toString(), endMs.toString(), text)
+private fun Utterance.draft() = DraftLine(speakerId, startMs.toString(), endMs.toString(), TextFieldValue(text))
 
 @Composable
 fun TranscriptEditor(line: Utterance, state: EngineUiState, durationMs: Long,
@@ -21,6 +22,8 @@ fun TranscriptEditor(line: Utterance, state: EngineUiState, durationMs: Long,
     cancel: () -> Unit, onClose: () -> Unit) {
     var drafts by remember(line) { mutableStateOf(listOf(line.draft())) }
     var allSpeaker by remember(line) { mutableStateOf(false) }
+    var splitting by remember(line) { mutableStateOf(false) }
+    var splitTime by remember(line) { mutableStateOf("") }
     var mixed by remember { mutableStateOf(true) }
     var denoise by remember { mutableStateOf(false) }
     var separate by remember { mutableStateOf(false) }
@@ -45,6 +48,22 @@ fun TranscriptEditor(line: Utterance, state: EngineUiState, durationMs: Long,
                     }
                     OutlinedTextField(draft.text, { update(draft.copy(text = it)) }, label = { Text("Текст") }, minLines = 3, enabled = !state.busy)
                 }
+                if (!state.busy && drafts.size == 1) {
+                    TextButton(onClick = { splitting = !splitting }) { Text("Разделить реплику") }
+                    if (splitting) {
+                        Text("Поставьте курсор в тексте на смене говорящего и укажите её время. После разделения назначьте ID обеим частям.")
+                        OutlinedTextField(splitTime, { splitTime = it }, label = { Text("Смена голоса, мс") })
+                        OutlinedButton(onClick = {
+                            try {
+                                val draft = drafts.single()
+                                val original = draft.parse().copy(text = draft.text.text)
+                                val boundary = splitTime.toLongOrNull() ?: error("Укажите время смены голоса в миллисекундах")
+                                drafts = TranscriptTools.split(original, boundary, draft.text.selection.start).map { it.draft() }
+                                allSpeaker = false; splitting = false; error = null
+                            } catch (e: Exception) { error = e.message }
+                        }) { Text("Создать две реплики") }
+                    }
+                }
                 if (!state.busy && drafts.size == 1 && line.speakerId != "speaker_unknown" && !line.speakerId.startsWith("speaker_review_")) {
                     Row { Checkbox(allSpeaker, { allSpeaker = it }); Text("Применить ID ко всем репликам «${line.speakerId}»") }
                 }
@@ -53,9 +72,9 @@ fun TranscriptEditor(line: Utterance, state: EngineUiState, durationMs: Long,
                     Text("${state.stage} · прошло ${clockText(state.elapsedMs)}")
                     TextButton(onClick = cancel) { Text("Остановить") }
                 } else {
-                    Row { Checkbox(mixed, { mixed = it }); Text("Русский + английский: Whisper") }
+                    Row { Checkbox(mixed, { mixed = it }); Text("Уточнить иноязычную речь") }
                     Row { Checkbox(denoise, { denoise = it }); Text("Очистить фоновый шум") }
-                    Row { Checkbox(separate, { separate = it }); Text("Разделить два голоса") }
+                    Row { Checkbox(separate, { separate = it }); Text("Разделить наложенные голоса") }
                     Text("Повторная обработка — до 30 с; разделение голосов — до 6 с. При необходимости сузьте границы выше. Разделение экспериментальное: проверьте слова и ID обоих голосов.")
                     OutlinedButton(onClick = {
                         try {

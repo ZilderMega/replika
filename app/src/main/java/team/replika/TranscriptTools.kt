@@ -1,14 +1,18 @@
 package team.replika
 
 object TranscriptTools {
-    /** A review/display layer. The recognizer's original text is never overwritten. */
-    private val terms = listOf("ю туб" to "YouTube", "ютуб" to "YouTube", "ютюб" to "YouTube", "джава" to "Java",
-        "джаве" to "Java", "джаву" to "Java", "котлин" to "Kotlin", "гитхаб" to "GitHub", "гитхабе" to "GitHub",
-        "андроид" to "Android", "джетпак компоуз" to "Jetpack Compose")
-        .map { (alias, canonical) -> Regex("(?iu)(?<![\\p{L}\\p{N}])${Regex.escape(alias)}(?![\\p{L}\\p{N}])") to canonical }
-    fun terms(text: String): String = terms.fold(text) { value, (pattern, canonical) -> pattern.replace(value, canonical) }
-    fun withTerms(transcript: Transcript) = Transcript(transcript.utterances.map { it.copy(text = terms(it.text)) })
-
+    fun split(line: Utterance, boundaryMs: Long, characterOffset: Int): List<Utterance> {
+        require(boundaryMs > line.startMs && boundaryMs < line.endMs) { "Время смены голоса должно быть внутри реплики" }
+        require(characterOffset in 1 until line.text.length) { "Поставьте курсор между двумя частями текста" }
+        require(!line.text[characterOffset - 1].isLetterOrDigit() || !line.text[characterOffset].isLetterOrDigit()) {
+            "Разделяйте текст между словами"
+        }
+        val first = line.text.substring(0, characterOffset).trim()
+        val second = line.text.substring(characterOffset).trim()
+        require(first.isNotEmpty() && second.isNotEmpty()) { "Обе части должны содержать текст" }
+        return listOf(line.copy(endMs = boundaryMs, text = first),
+            line.copy(speakerId = "speaker_unknown", startMs = boundaryMs, text = second))
+    }
     fun reassignSpeaker(original: Transcript, from: String, to: String): Transcript {
         require(from.isNotBlank() && from != "speaker_unknown" && !from.startsWith("speaker_review_") && to.isNotBlank())
         return Transcript(original.utterances.map { if (it.speakerId == from) it.copy(speakerId = to) else it })

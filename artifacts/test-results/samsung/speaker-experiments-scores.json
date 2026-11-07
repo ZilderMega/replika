@@ -1,0 +1,217 @@
+[
+  {
+    "source": "ami-native-baseline.json",
+    "fixture": "ami-development.wav",
+    "threshold": 0.5,
+    "global_matcher": false,
+    "elapsed_ms": 6725,
+    "score": {
+      "der": 0.3883340155546459,
+      "missed_speaker_ms": 404,
+      "false_speaker_ms": 342,
+      "confused_speaker_ms": 8741,
+      "reference_speaker_ms": 24430,
+      "speaker_mapping": {
+        "speaker_0": "MEE008",
+        "speaker_2": "FEE005",
+        "speaker_3": null,
+        "speaker_4": "MEE006"
+      },
+      "collar_ms": 0,
+      "ignore_overlap": false
+    }
+  },
+  {
+    "source": "ami-native-baseline.json",
+    "fixture": "ami-development.wav",
+    "threshold": 0.65,
+    "global_matcher": false,
+    "elapsed_ms": 2369,
+    "score": {
+      "der": 0.5024969300040933,
+      "missed_speaker_ms": 404,
+      "false_speaker_ms": 359,
+      "confused_speaker_ms": 11513,
+      "reference_speaker_ms": 24430,
+      "speaker_mapping": {
+        "speaker_0": "FEE005",
+        "speaker_1": "MEE008",
+        "speaker_2": null,
+        "speaker_3": "MEE006"
+      },
+      "collar_ms": 0,
+      "ignore_overlap": false
+    }
+  },
+  {
+    "source": "ami-native-baseline.json",
+    "fixture": "ami-development.wav",
+    "threshold": 0.8,
+    "global_matcher": false,
+    "elapsed_ms": 5271,
+    "score": {
+      "der": 0.5024969300040933,
+      "missed_speaker_ms": 404,
+      "false_speaker_ms": 359,
+      "confused_speaker_ms": 11513,
+      "reference_speaker_ms": 24430,
+      "speaker_mapping": {
+        "speaker_0": "FEE005",
+        "speaker_1": "MEE008",
+        "speaker_2": null,
+        "speaker_3": "MEE006"
+      },
+      "collar_ms": 0,
+      "ignore_overlap": false
+    }
+  },
+  {
+    "source": "ami-native-baseline.json",
+    "fixture": "ami-holdout.wav",
+    "threshold": 0.5,
+    "global_matcher": false,
+    "elapsed_ms": 10478,
+    "score": {
+      "der": 0.39210069444444445,
+      "missed_speaker_ms": 1264,
+      "false_speaker_ms": 347,
+      "confused_speaker_ms": 7423,
+      "reference_speaker_ms": 23040,
+      "speaker_mapping": {
+        "speaker_0": "MEE007",
+        "speaker_2": "MEE006",
+        "speaker_3": "MEE008",
+        "speaker_5": "FEE005"
+      },
+      "collar_ms": 0,
+      "ignore_overlap": false
+    }
+  },
+  {
+    "source": "ami-native-baseline.json",
+    "fixture": "ami-holdout.wav",
+    "threshold": 0.65,
+    "global_matcher": false,
+    "elapsed_ms": 30835,
+    "score": {
+      "der": 0.39210069444444445,
+      "missed_speaker_ms": 1264,
+      "false_speaker_ms": 347,
+      "confused_speaker_ms": 7423,
+      "reference_speaker_ms": 23040,
+      "speaker_mapping": {
+        "speaker_0": "MEE007",
+        "speaker_2": "MEE006",
+        "speaker_3": "MEE008",
+        "speaker_5": "FEE005"
+      },
+      "collar_ms": 0,
+      "ignore_overlap": false
+    }
+  },
+  {
+    "source": "ami-native-baseline.json",
+    "fixture": "ami-holdout.wav",
+    "threshold": 0.8,
+    "global_matcher": false,
+    "elapsed_ms": 25633,
+    "score": {
+      "der": 0.3873263888888889,
+      "missed_speaker_ms": 1220,
+      "false_speaker_ms": 422,
+      "confused_speaker_ms": 7282,
+      "reference_speaker_ms": 23040,
+      "speaker_mapping": {
+        "speaker_0": "MEE007",
+        "speaker_1": "MEE008",
+        "speaker_2": "MEE006",
+        "speaker_3": "FEE005"
+      },
+      "collar_ms": 0,
+      "ignore_overlap": false
+    }
+  },
+  {
+    "source": "ami-candidate-embedding.json",
+    "fixture": "ami-development.wav",
+    "threshold": 0.5,
+    "global_matcher": false,
+    "elapsed_ms": 21801,
+    "score": {
+      "der": 0.05571019238641015,
+      "missed_speaker_ms": 471,
+      "false_speaker_ms": 359,
+      "confused_speaker_ms": 531,
+      "reference_speaker_ms": 24430,
+      "speaker_mapping": {
+        "speaker_0": "FEE005",
+        "speaker_1": "MEE008",
+        "speaker_2": null,
+        "speaker_3": "MEE006"
+      },
+      "collar_ms": 0,
+      "ignore_overlap": false
+    }
+  },
+  {
+    "source": "ami-candidate-embedding.json",
+    "fixture": "ami-development.wav",
+    "threshold": 0.5,
+    "global_matcher": true,
+    "elapsed_ms": 59004,
+    "score": {
+      "der": 1.0146950470732705,
+      "missed_speaker_ms": 623,
+      "false_speaker_ms": 359,
+      "confused_speaker_ms": 23807,
+      "reference_speaker_ms": 24430,
+      "speaker_mapping": {},
+      "collar_ms": 0,
+      "ignore_overlap": false
+    }
+  },
+  {
+    "source": "ami-candidate-embedding.json",
+    "fixture": "ami-holdout.wav",
+    "threshold": 0.5,
+    "global_matcher": false,
+    "elapsed_ms": 76650,
+    "score": {
+      "der": 0.11527777777777778,
+      "missed_speaker_ms": 1237,
+      "false_speaker_ms": 422,
+      "confused_speaker_ms": 997,
+      "reference_speaker_ms": 23040,
+      "speaker_mapping": {
+        "speaker_0": null,
+        "speaker_1": "MEE008",
+        "speaker_2": "MEE006",
+        "speaker_3": null,
+        "speaker_4": "MEE007",
+        "speaker_5": "FEE005"
+      },
+      "collar_ms": 0,
+      "ignore_overlap": false
+    }
+  },
+  {
+    "source": "ami-candidate-embedding.json",
+    "fixture": "ami-holdout.wav",
+    "threshold": 0.5,
+    "global_matcher": true,
+    "elapsed_ms": 62585,
+    "score": {
+      "der": 0.8717881944444444,
+      "missed_speaker_ms": 1237,
+      "false_speaker_ms": 422,
+      "confused_speaker_ms": 18427,
+      "reference_speaker_ms": 23040,
+      "speaker_mapping": {
+        "speaker_0": "MEE006",
+        "speaker_1": "MEE007"
+      },
+      "collar_ms": 0,
+      "ignore_overlap": false
+    }
+  }
+]

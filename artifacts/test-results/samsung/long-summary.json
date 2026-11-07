@@ -1,0 +1,29 @@
+{
+  "device": "SM-S936B",
+  "threads": 4,
+  "provider": "cpu",
+  "duration_ms": 4918520,
+  "elapsed_ms": 1371132,
+  "rtf": 0.27876922326228215,
+  "stages_ms": {
+    "Проверка моделей": 2,
+    "Подготовка звука": 111177,
+    "Распознавание речи": 109282,
+    "Определение участников": 1147066,
+    "Сборка реплик": 27,
+    "Быстрая пунктуация": 3578,
+    "Готово": 0
+  },
+  "peak_sampled_process_pss_kib": 382009,
+  "battery_temperature_before_c": 35,
+  "battery_temperature_after_c": 39.1,
+  "thermal_status_before": 0,
+  "thermal_status_after": 1,
+  "resumed_at_ms": 6000,
+  "preserved_committed_words": 10,
+  "voice_matcher_version": 1,
+  "final_voice_matcher_version": 3,
+  "completeness": "Instrumentation asserted recognizedMs == durationMs, diarizedSamples == samples, finished and retained committed ASR words",
+  "accuracy": "No independently annotated private reference; coverage is not word or speaker accuracy",
+  "conditions": "Already imported file, models installed, fast punctuation, no generative Qwen. Wireless ADB APK transfer overlapped the run; not an isolated energy or thermal benchmark."
+}

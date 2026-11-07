@@ -1,0 +1,43 @@
+{
+  "original_unchanged": true,
+  "manual_split": true,
+  "split_ms": 150,
+  "raw": {
+    "transcript": [
+      {
+        "speaker_id": "speaker_unknown",
+        "start_ms": 0,
+        "end_ms": 300,
+        "text": "я"
+      },
+      {
+        "speaker_id": "speaker_review_1",
+        "start_ms": 5759,
+        "end_ms": 7459,
+        "text": "тебя люблю"
+      }
+    ]
+  },
+  "reviewed": {
+    "transcript": [
+      {
+        "speaker_id": "speaker_unknown",
+        "start_ms": 0,
+        "end_ms": 150,
+        "text": "Ручная"
+      },
+      {
+        "speaker_id": "speaker_unknown",
+        "start_ms": 150,
+        "end_ms": 300,
+        "text": "правка стенограммы."
+      },
+      {
+        "speaker_id": "speaker_review_1",
+        "start_ms": 5759,
+        "end_ms": 7459,
+        "text": "Тебя люблю."
+      }
+    ]
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "device": "SM-S936B",
+  "sdk": 37,
+  "pipeline": [
+    {
+      "provider": "cpu",
+      "threads": 2,
+      "samples_ms": [
+        9354,
+        10090,
+        13159
+      ],
+      "median_ms": 10090,
+      "audio_ms": 35400,
+      "peak_sampled_pss_mib": 298.9
+    },
+    {
+      "provider": "cpu",
+      "threads": 4,
+      "samples_ms": [
+        10814,
+        8768,
+        9088
+      ],
+      "median_ms": 9088,
+      "audio_ms": 35400,
+      "peak_sampled_pss_mib": 306.2
+    },
+    {
+      "provider": "cpu",
+      "threads": 6,
+      "samples_ms": [
+        9005,
+        8816,
+        10552
+      ],
+      "median_ms": 9005,
+      "audio_ms": 35400,
+      "peak_sampled_pss_mib": 300.8
+    },
+    {
+      "provider": "nnapi",
+      "threads": 4,
+      "samples_ms": [
+        9086,
+        11142,
+        10331
+      ],
+      "median_ms": 10331,
+      "audio_ms": 35400,
+      "peak_sampled_pss_mib": 285.7
+    }
+  ],
+  "same_asr_words_across_runs": true,
+  "language": [
+    {
+      "fixture": "english.wav",
+      "mode": "russian",
+      "reference_words": 18,
+      "word_errors": 18,
+      "wer": 1.0,
+      "elapsed_ms": 2303
+    },
+    {
+      "fixture": "english.wav",
+      "mode": "multilingual",
+      "reference_words": 18,
+      "word_errors": 0,
+      "wer": 0.0,
+      "elapsed_ms": 1317
+    },
+    {
+      "fixture": "english-second.wav",
+      "mode": "russian",
+      "reference_words": 48,
+      "word_errors": 48,
+      "wer": 1.0,
+      "elapsed_ms": 2520
+    },
+    {
+      "fixture": "english-second.wav",
+      "mode": "multilingual",
+      "reference_words": 48,
+      "word_errors": 4,
+      "wer": 0.08333333333333333,
+      "elapsed_ms": 2152
+    }
+  ],
+  "recommended_provider": "cpu",
+  "recommended_threads": 4,
+  "recommendation_rule": "Keep four threads when within 5% of fastest CPU median; only 3 sequential short-file runs, no causal thermal comparison",
+  "limitations": [
+    "2 public English clips are not an unseen representative corpus",
+    "WER uses literal published spelling: e.g. for ever and forever differ",
+    "These short speed/language runs have no DER labels; separate AMI evaluation has human RTTM",
+    "NNAPI requested, actual NPU execution not established",
+    "PSS sampled every 500ms, not guaranteed peak or whole-system RAM",
+    "Battery temperature is not CPU temperature; battery percentage is not isolated app energy"
+  ]
+}

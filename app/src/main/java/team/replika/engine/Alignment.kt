@@ -9,6 +9,8 @@ data class Word(val text: String, val startMs: Long, val endMs: Long)
 object Alignment {
     fun assemble(words: List<Word>, spans: List<SpeakerSpan>, durationMs: Long): List<Utterance> {
         val ids = spans.filter { it.id >= 0 }.sortedBy { it.startMs }.map { it.id }.distinct().withIndex().associate { it.value to "speaker_${it.index + 1}" }
+        val provisional = spans.filter { it.id < -1 }.sortedBy { it.startMs }.map { it.id }.distinct()
+            .withIndex().associate { it.value to "speaker_review_${it.index + 1}" }
         val result = mutableListOf<Utterance>()
         val orderedSpans = spans.sortedBy { it.startMs }
         val active = mutableListOf<SpeakerSpan>()
@@ -27,8 +29,8 @@ object Alignment {
             }
             val ranked = overlaps.entries.sortedByDescending { it.value }
             // Do not invent a second transcript for overlapping voices.
-            val speaker = if (ranked.isEmpty() || ranked[0].key < 0 || (ranked.size > 1 && ranked[1].value * 2 >= ranked[0].value))
-                "speaker_unknown" else ids.getValue(ranked[0].key)
+            val speaker = if (ranked.isEmpty() || ranked[0].key == -1 || (ranked.size > 1 && ranked[1].value * 2 >= ranked[0].value))
+                "speaker_unknown" else ids[ranked[0].key] ?: provisional.getValue(ranked[0].key)
             val previous = result.lastOrNull()
             if (previous != null && previous.speakerId == speaker && start - previous.endMs <= 800 && end - previous.startMs <= 20_000) {
                 result[result.lastIndex] = previous.copy(endMs = maxOf(previous.endMs, end), text = previous.text + " " + word.text)

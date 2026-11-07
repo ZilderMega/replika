@@ -5,6 +5,21 @@ import org.junit.Test
 import java.nio.file.Files
 
 class VoiceMatcherTest {
+    @Test fun unresolvedLocalVoicesStaySeparateWithoutClaimingGlobalIdentity() {
+        val words = listOf(Word("один", 100, 400), Word("другой", 500, 800), Word("снова", 900, 1200))
+        val result = Alignment.assemble(words, listOf(SpeakerSpan(0, 450, -2),
+            SpeakerSpan(450, 850, -3), SpeakerSpan(850, 1300, -2)), 1300)
+        assertEquals(listOf("speaker_review_1", "speaker_review_2", "speaker_review_1"), result.map { it.speakerId })
+        assertEquals(listOf("один", "другой", "снова"), result.map { it.text })
+    }
+    @Test fun similarNativeVoicesDoNotSilentlyShareOneGlobalSpeaker() {
+        val voiceA = floatArrayOf(1f, 0f, 0f)
+        val voiceB = requireNotNull(VoiceMatcher.normalize(floatArrayOf(.90f, .43589f, 0f)))
+        val profiles = mutableListOf(VoiceProfile(voiceA.copyOf(), 3000))
+        val mapping = VoiceMatcher.assign(listOf(observation(0, voiceA), observation(1, voiceB)), profiles)
+        assertEquals(0, mapping[0])
+        assertNotEquals("A different native cluster must not inherit the same ID just from moderate similarity", mapping[0], mapping[1])
+    }
     private val a = floatArrayOf(1f, 0f, 0f)
     private val b = floatArrayOf(0f, 1f, 0f)
     private fun observation(id: Int, vector: FloatArray, start: Long = id * 4000L) =
