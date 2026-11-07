@@ -8,3 +8,8 @@ local.properties
 .env
 .env.*
 *.hprof
+.deps/
+.models/
+app/libs/*.aar
+app/.cxx/
+artifacts/
