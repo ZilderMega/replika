@@ -1,0 +1,6 @@
+
+team.replika.PhysicalValidationTest:.
+
+Time: 0,138
+
+OK (1 test)

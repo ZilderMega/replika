@@ -119,8 +119,20 @@ class PhysicalValidationTest {
 
     @Test fun showPrivateLongResultInHistory() {
         org.junit.Assume.assumeTrue(InstrumentationRegistry.getArguments().getString("publishPrivateResult") == "true")
+        fun retainSourceSignature(audio: File, directory: File) {
+            // File.copyTo changes mtime; preserve it so later speaker-only recalculation retains ASR.
+            require(audio.setLastModified(File(context.filesDir, "private-interview.m4a").lastModified()))
+            val signature = "pipeline-3:${ProcessingOptions(threads = 4).audioSignature}:${audio.length()}:${audio.lastModified()}:" +
+                File(models.directory, "manifest.json").readText().hashCode()
+            assertEquals(signature, PipelineCheckpoint.load(directory).signature)
+        }
         val marker = File(context.filesDir, "private-visible-session-id.txt")
-        if (marker.isFile) { assertTrue(ProcessingService.jobDirectory(context.filesDir, marker.readText()).isDirectory); return }
+        if (marker.isFile) {
+            val directory = ProcessingService.jobDirectory(context.filesDir, marker.readText())
+            assertTrue(directory.isDirectory)
+            retainSourceSignature(File(directory, "source.audio"), directory)
+            return
+        }
         val source = File(context.filesDir, "private-long-validation")
         val result = JSONObject(File(source, "result.json").readText())
         require(PipelineCheckpoint.load(source).finished)
@@ -131,6 +143,7 @@ class PhysicalValidationTest {
         source.listFiles().orEmpty().filter { it.isFile && it.name != "audio.pcm" }.forEach { it.copyTo(File(destination, it.name)) }
         val audio = File(destination, "source.audio")
         File(context.filesDir, "private-interview.m4a").copyTo(audio)
+        retainSourceSignature(audio, destination)
         PipelineCheckpoint.writeAtomically(File(destination, "options.json"), JSONObject().put("threads", 4)
             .put("provider", "cpu").put("denoise", false).put("vad", false).put("speakers", 0).toString())
         val prefs = context.getSharedPreferences("sessions", 0)
