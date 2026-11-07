@@ -2,11 +2,11 @@
   "version": "0.6.0",
   "date": "2026-11-07",
   "apk": "replika-0.6-bundled-debug.apk",
-  "sha256": "fd5bd5194ae0d66670815d94d5dbaf0f0c6c16d028cfa8ee3d776f293d3b4cad",
-  "bytes": 790983209,
-  "android_tests": 23,
-  "jvm_tests": 29,
+  "sha256": "e8650bc802dec4ec502bb6ae34cce3e8ab69713f6879521e87e6da3c80433f28",
+  "bytes": 791257419,
+  "android_tests": 24,
+  "jvm_tests": 37,
   "evaluator_tests": 5,
   "tested_device": "sdk_gphone64_x86_64",
-  "note": "Debug build; ARM64 compiled, final checks on emulator only"
+  "note": "ARM64/x86_64 debug build. Emulator: 24 unique Android scenarios across full and focused runs; see docs/TEST_RESULTS.md for initial failure and four passing UI checks after fixes."
 }

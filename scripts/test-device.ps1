@@ -56,6 +56,7 @@ $evidence = @{
     'editor-proof.json' = 'editor-proof.json'
     'voice-continuity.json' = 'voice-continuity.json'
     'voice-recalculation.json' = 'voice-recalculation.json'
+    'history-player-proof.json' = 'history-player-proof.json'
 }
 foreach ($entry in $evidence.GetEnumerator()) {
     Adb shell run-as team.replika cat "files/$($entry.Key)" | Set-Content "artifacts/test-results/$($entry.Value)" -Encoding utf8NoBOM

@@ -4,48 +4,55 @@
     "tests": 6,
     "failures": 0,
     "errors": 0,
-    "seconds": 0.106
+    "seconds": 0.042
   },
   {
     "suite": "team.replika.engine.LongProcessingTest",
     "tests": 5,
     "failures": 0,
     "errors": 0,
-    "seconds": 0.196
+    "seconds": 0.117
   },
   {
     "suite": "team.replika.engine.VoiceMatcherTest",
     "tests": 7,
     "failures": 0,
     "errors": 0,
-    "seconds": 0.038
+    "seconds": 0.022
   },
   {
     "suite": "team.replika.PlaybackTest",
-    "tests": 1,
+    "tests": 5,
     "failures": 0,
     "errors": 0,
-    "seconds": 0.035
+    "seconds": 0.025
+  },
+  {
+    "suite": "team.replika.SessionCodecTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 0.042
   },
   {
     "suite": "team.replika.TranscriptExportTest",
     "tests": 2,
     "failures": 0,
     "errors": 0,
-    "seconds": 0.065
+    "seconds": 0.005
   },
   {
     "suite": "team.replika.TranscriptToolsTest",
     "tests": 5,
     "failures": 0,
     "errors": 0,
-    "seconds": 0.052
+    "seconds": 0.022
   },
   {
     "suite": "team.replika.WorkflowTest",
     "tests": 3,
     "failures": 0,
     "errors": 0,
-    "seconds": 0.01
+    "seconds": 0.003
   }
 ]

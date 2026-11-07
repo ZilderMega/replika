@@ -55,30 +55,49 @@ C:\Users\5324\AndroidStudioProjects\replika\app\build.gradle.kts:49: Warning: A 
    However, you may simply not be aware that a more recent version is
    available, and that is what this lint check helps find.
 
-C:\Users\5324\AndroidStudioProjects\replika\app\src\main\AndroidManifest.xml:8: Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
-    <application android:label="Реплика" android:allowBackup="false" android:fullBackupContent="false" android:dataExtractionRules="@xml/data_extraction_rules" android:supportsRtl="true" android:theme="@android:style/Theme.Material.Light.NoActionBar">
-     ~~~~~~~~~~~
+C:\Users\5324\AndroidStudioProjects\replika\app\src\main\res\mipmap-anydpi-v26: Warning: This folder configuration (v26) is unnecessary; minSdkVersion is 26. Merge all the resources in this folder into mipmap-anydpi. [ObsoleteSdkInt]
 
-   Explanation for issues of type "MissingApplicationIcon":
-   You should set an icon for the application as whole because there is no
-   default. This attribute must be set as a reference to a drawable resource
-   containing the image (for example @drawable/icon).
+   Explanation for issues of type "ObsoleteSdkInt":
+   This check flags version checks that are not necessary, because the
+   minSdkVersion (or surrounding known API level) is already at least as high
+   as the version checked for.
 
-   https://developer.android.com/studio/publish/preparing#publishing-configure
+   Similarly, it also looks for resources in -vNN folders, such as values-v14
+   where the version qualifier is less than or equal to the minSdkVersion,
+   where the contents should be merged into the best folder.
 
-C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\MainActivity.kt:76: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
-        prefs.edit().putString("items", data.toString()).apply()
+C:\Users\5324\AndroidStudioProjects\replika\app\src\main\res\mipmap-anydpi-v26\ic_launcher.xml:1: Warning: The application adaptive icon is missing a monochrome tag [MonochromeLauncherIcon]
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+^
+
+   Explanation for issues of type "MonochromeLauncherIcon":
+   If android:roundIcon and android:icon are both in your manifest, you must
+   either remove the reference to android:roundIcon if it is not needed; or,
+   supply the monochrome icon in the drawable defined by the android:roundIcon
+   and android:icon attribute.
+
+   For example, if android:roundIcon and android:icon are both in the
+   manifest, a launcher might choose to use android:roundIcon over
+   android:icon to display the adaptive app icon. Therefore, your themed
+   application iconwill not show if your monochrome attribute is not also
+   specified in android:roundIcon.
+
+C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\MainActivity.kt:69: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putString("items", SessionCodec.encode(sessions)).apply()
         ~~~~~~~~~~~~
-C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\MainActivity.kt:176: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\MainActivity.kt:95: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                prefs.edit().putString("consumed_recording", path).apply()
+                ~~~~~~~~~~~~
+C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\MainActivity.kt:182: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
         engine.transcribe(Uri.parse(session.uri), session.id, punctuation, options, forceSpeakers)
                           ~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\MainActivity.kt:178: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\MainActivity.kt:184: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
             prefs.edit().putBoolean("notification_requested", true).apply()
             ~~~~~~~~~~~~
-C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\MainActivity.kt:192: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
-            player = MediaPlayer().apply { setDataSource(context, Uri.parse(selected!!.uri)); prepare(); seekTo(offset ?: 0); start() }
-                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~
-C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\MainActivity.kt:209: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\MainActivity.kt:214: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+            next.setDataSource(context, Uri.parse(selected!!.uri)); next.prepareAsync()
+                                        ~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\MainActivity.kt:231: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
                 onRefine = { target, mixed, separate, denoise -> selected?.let { engine.refine(Uri.parse(it.uri), it.id, target, mixed, separate, denoise) } },
                                                                                                ~~~~~~~~~~~~~~~~~
 C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\ProcessingService.kt:81: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
@@ -141,4 +160,4 @@ C:\Users\5324\AndroidStudioProjects\replika\app\src\main\java\team\replika\Proce
    </lint>
    ```
 
-0 errors, 14 warnings
+0 errors, 16 warnings

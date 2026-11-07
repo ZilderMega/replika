@@ -82,7 +82,7 @@ private fun App() {
     var confirmDelete by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     val recording by RecordingService.state.collectAsState()
-    var consumedRecording by rememberSaveable { mutableStateOf<String?>(null) }
+    var consumedRecording by rememberSaveable { mutableStateOf(prefs.getString("consumed_recording", null)) }
     val microphone = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         if (permissions[android.Manifest.permission.RECORD_AUDIO] == true) context.startForegroundService(Intent(context, RecordingService::class.java))
         else message = "Для записи разрешите доступ к микрофону."
@@ -92,6 +92,7 @@ private fun App() {
         recording.file?.let { path ->
             if (path != consumedRecording) {
                 consumedRecording = path
+                prefs.edit().putString("consumed_recording", path).apply()
                 val file = java.io.File(path)
                 val session = Session(UUID.randomUUID().toString(), file.name, Uri.fromFile(file).toString())
                 sessions.add(0, session); save(); engine.clearResult(); selectedId = session.id
@@ -205,7 +206,7 @@ private fun App() {
                 position = boundedSeek(offset ?: 0, duration)
                 ready.seekTo(position); ready.start(); playing = true; preparing = false
             }
-            next.setOnCompletionListener { playing = false; position = duration }
+            next.setOnCompletionListener { completed -> if (player === completed) { playing = false; position = duration } }
             next.setOnErrorListener { failed, _, _ ->
                 if (player === failed) { player = null; playing = false; preparing = false; message = "Не удалось воспроизвести запись. Проверьте доступ к файлу." }
                 failed.release(); true
