@@ -36,8 +36,7 @@ import java.util.UUID
 import team.replika.engine.clockText
 import team.replika.engine.PipelineCheckpoint
 import team.replika.engine.ProcessingOptions
-
-private data class Session(val id: String, val name: String, val uri: String, val transcript: String? = null, val formatted: String? = null, val edited: String? = null)
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,18 +61,12 @@ private fun App() {
     val sessions = remember {
         mutableStateListOf<Session>().apply {
             try {
-                val data = JSONArray(prefs.getString("items", "[]"))
-                for (i in 0 until data.length()) {
-                    val item = data.getJSONObject(i)
-                    add(Session(item.getString("id"), item.getString("name"), item.getString("uri"), item.optString("transcript").ifEmpty { null }, item.optString("formatted").ifEmpty { null }, item.optString("edited").ifEmpty { null }))
-                }
+                addAll(SessionCodec.decode(prefs.getString("items", "[]") ?: "[]"))
             } catch (_: Exception) { }
         }
     }
     fun save() {
-        val data = JSONArray()
-        sessions.forEach { data.put(JSONObject().put("id", it.id).put("name", it.name).put("uri", it.uri).put("transcript", it.transcript ?: "").put("formatted", it.formatted ?: "").put("edited", it.edited ?: "")) }
-        prefs.edit().putString("items", data.toString()).apply()
+        prefs.edit().putString("items", SessionCodec.encode(sessions)).apply()
     }
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
     var showFormatted by remember(selectedId) { mutableStateOf(true) }
@@ -86,6 +79,7 @@ private fun App() {
     var editor by remember { mutableStateOf<Pair<Int, Transcript>?>(null) }
     var exportJson by remember { mutableStateOf<String?>(null) }
     var useLlm by rememberSaveable { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     val recording by RecordingService.state.collectAsState()
     var consumedRecording by rememberSaveable { mutableStateOf<String?>(null) }
@@ -105,6 +99,11 @@ private fun App() {
         }
     }
     var player by remember { mutableStateOf<MediaPlayer?>(null) }
+    var playing by remember { mutableStateOf(false) }
+    var preparing by remember { mutableStateOf(false) }
+    var position by remember { mutableIntStateOf(0) }
+    var duration by remember { mutableIntStateOf(0) }
+    var seeking by remember { mutableStateOf(false) }
     val selected = sessions.firstOrNull { it.id == selectedId }
     val activeState = engineState.takeIf { it.sessionId == selectedId }
     LaunchedEffect(activeState?.sessionId, activeState?.options) {
@@ -153,6 +152,12 @@ private fun App() {
         }
     }
     DisposableEffect(Unit) { onDispose { player?.release() } }
+    LaunchedEffect(playing, player) {
+        while (playing) {
+            if (!seeking) position = try { player?.currentPosition ?: 0 } catch (_: IllegalStateException) { 0 }
+            delay(500)
+        }
+    }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) try {
             context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -172,7 +177,7 @@ private fun App() {
     val notifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     fun beginProcessing(punctuation: Boolean, forceSpeakers: Boolean = false) {
         val session = selected ?: return
-        player?.release(); player = null
+        player?.release(); player = null; playing = false; preparing = false; position = 0; duration = 0
         engine.transcribe(Uri.parse(session.uri), session.id, punctuation, options, forceSpeakers)
         if (android.os.Build.VERSION.SDK_INT >= 33 && !prefs.getBoolean("notification_requested", false)) {
             prefs.edit().putBoolean("notification_requested", true).apply()
@@ -181,17 +186,33 @@ private fun App() {
     }
     fun play(offset: Int? = null) {
         try {
+            if (preparing) return
             if (offset == null) {
                 when (playbackAction(player != null, player?.isPlaying == true)) {
-                    PlaybackAction.Resume -> { player?.start(); return }
+                    PlaybackAction.Resume -> { player?.start(); playing = true; return }
                     PlaybackAction.None -> return
                     PlaybackAction.Open -> Unit
                 }
             }
             player?.release()
-            player = MediaPlayer().apply { setDataSource(context, Uri.parse(selected!!.uri)); prepare(); seekTo(offset ?: 0); start() }
+            player = null
+            playing = false; preparing = true; position = 0; duration = 0
+            val next = MediaPlayer()
+            player = next
+            next.setOnPreparedListener { ready ->
+                if (player !== ready) return@setOnPreparedListener
+                duration = ready.duration.coerceAtLeast(0)
+                position = boundedSeek(offset ?: 0, duration)
+                ready.seekTo(position); ready.start(); playing = true; preparing = false
+            }
+            next.setOnCompletionListener { playing = false; position = duration }
+            next.setOnErrorListener { failed, _, _ ->
+                if (player === failed) { player = null; playing = false; preparing = false; message = "Не удалось воспроизвести запись. Проверьте доступ к файлу." }
+                failed.release(); true
+            }
+            next.setDataSource(context, Uri.parse(selected!!.uri)); next.prepareAsync()
             message = null
-        } catch (_: Exception) { player?.release(); player = null; message = "Не удалось воспроизвести запись. Проверьте доступ к файлу." }
+        } catch (_: Exception) { player?.release(); player = null; playing = false; preparing = false; message = "Не удалось воспроизвести запись. Проверьте доступ к файлу." }
     }
     val ink = Color(0xFF252321)
     val muted = Color(0xFF625C56)
@@ -263,16 +284,23 @@ private fun App() {
                         }
                     }
                 } else {
-                    item { TextButton(onClick = { player?.release(); player = null; engine.clearResult(); selectedId = null; message = null }, enabled = !engineState.busy, contentPadding = PaddingValues(0.dp)) { Icon(painterResource(R.drawable.solar_back), null); Text("История", fontSize = 17.sp) } }
+                    item { TextButton(onClick = { player?.release(); player = null; playing = false; preparing = false; position = 0; duration = 0; engine.clearResult(); selectedId = null; message = null }, enabled = !engineState.busy, contentPadding = PaddingValues(0.dp)) { Icon(painterResource(R.drawable.solar_back), null); Text("История", fontSize = 17.sp) } }
                     item { Text("АУДИОЗАПИСЬ", color = accent, fontSize = 14.sp, letterSpacing = 1.2.sp, fontWeight = FontWeight.Bold); Spacer(Modifier.height(12.dp)); Text(selected.name, fontSize = 29.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold) }
                     if (engineState.busy) item { ProcessingProgress(engineState, engine::cancel) }
                     else if (engineState.sessionId == selectedId && engineState.elapsedMs > 0) item {
                         Text("Время обработки: ${clockText(engineState.elapsedMs)}", color = muted)
                     }
                     item { Column(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) { HorizontalDivider(color = ink); Text("Прослушивание", fontFamily = FontFamily.Serif, fontSize = 27.sp); Text("Запись хранится на вашем устройстве", color = muted, fontSize = 17.sp, lineHeight = 25.sp); Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { play() }, shape = RoundedCornerShape(4.dp), modifier = Modifier.heightIn(min = 56.dp)) { Icon(painterResource(R.drawable.solar_play), null); Spacer(Modifier.width(8.dp)); Text("Слушать", fontSize = 17.sp) }
-                        OutlinedButton(onClick = { player?.pause() }, shape = RoundedCornerShape(4.dp), modifier = Modifier.heightIn(min = 56.dp)) { Text("Пауза", fontSize = 17.sp) }
-                    } } }
+                        Button(onClick = { play() }, enabled = !preparing, shape = RoundedCornerShape(4.dp), modifier = Modifier.heightIn(min = 56.dp)) { Icon(painterResource(R.drawable.solar_play), null); Spacer(Modifier.width(8.dp)); Text(if (preparing) "Подготовка…" else "Слушать", fontSize = 17.sp) }
+                        OutlinedButton(onClick = { player?.pause(); playing = false }, enabled = playing, shape = RoundedCornerShape(4.dp), modifier = Modifier.heightIn(min = 56.dp)) { Text("Пауза", fontSize = 17.sp) }
+                    }
+                    Slider(value = position.toFloat().coerceIn(0f, duration.coerceAtLeast(1).toFloat()), onValueChange = { value -> seeking = true; position = boundedSeek(value.toInt(), duration) }, onValueChangeFinished = { player?.seekTo(boundedSeek(position, duration)); seeking = false }, valueRange = 0f..duration.coerceAtLeast(1).toFloat(), enabled = player != null && !preparing && duration > 0)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(formatPlaybackTime(position)); Text(formatPlaybackTime(duration)) }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { position = skipPlayback(position, -10_000, duration); player?.seekTo(position) }, enabled = player != null && !preparing && duration > 0, shape = RoundedCornerShape(4.dp), modifier = Modifier.weight(1f)) { Text("−10 сек", fontSize = 16.sp) }
+                        OutlinedButton(onClick = { position = skipPlayback(position, 10_000, duration); player?.seekTo(position) }, enabled = player != null && !preparing && duration > 0, shape = RoundedCornerShape(4.dp), modifier = Modifier.weight(1f)) { Text("+10 сек", fontSize = 16.sp) }
+                    }
+                    } }
                     if (!engineState.busy) item {
                         Text("Участников: ${if (options.speakers == 0) "авто" else options.speakers.toString()}")
                         Slider(options.speakers.toFloat(), { options = options.copy(speakers = it.toInt()) }, valueRange = 0f..8f, steps = 7)
@@ -326,18 +354,30 @@ private fun App() {
                         items(visibleLines, key = { it }) { i ->
                             val line = lines.getJSONObject(i)
                             Column {
-                                TextButton(onClick = { play(line.optLong("start_ms").coerceIn(0, Int.MAX_VALUE.toLong()).toInt()) }) { Text("${line.optString("speaker_id")} · ${clockText(line.optLong("start_ms"))}") }
-                                Text(line.optString("text"))
+                                val start = line.optLong("start_ms").coerceIn(0, Int.MAX_VALUE.toLong()).toInt()
+                                val end = line.optLong("end_ms").coerceIn(0, Int.MAX_VALUE.toLong()).toInt()
+                                TextButton(onClick = { play(start) }) { Text("${speakerLabel(line.optString("speaker_id"))} · ${formatPlaybackTime(start)}–${formatPlaybackTime(end)}", fontSize = 16.sp) }
+                                Text(line.optString("text"), fontSize = 18.sp, lineHeight = 27.sp)
                                 if (!engineState.busy && activeState?.resumable != true) TextButton(onClick = { editor = i to displayTranscript }) { Text("Править / распознать фрагмент") }
                             }
                         }
                     }
+                    item { TextButton(onClick = { confirmDelete = true }, enabled = !engineState.busy) { Text("Удалить из истории", fontSize = 16.sp, color = accent) } }
                 }
                 if (engineState.busy && selected == null) item { ProcessingProgress(engineState, engine::cancel) }
                 engineState.error?.let { error -> item { Text(error, color = MaterialTheme.colorScheme.error, fontSize = 17.sp); if (!engineState.modelsReady && !engineState.busy) TextButton(onClick = engine::prepareModels) { Text("Повторить подготовку") } } }
                 message?.let { item { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 17.sp, lineHeight = 25.sp) } }
             }
         }
+    }
+    if (confirmDelete && selected != null) {
+        AlertDialog(onDismissRequest = { confirmDelete = false }, title = { Text("Удалить запись из истории?") }, text = { Text("Расшифровка будет удалена из истории. Сам аудиофайл останется на устройстве.") },
+            confirmButton = { TextButton(onClick = {
+                player?.release(); player = null; playing = false; preparing = false
+                val remaining = removeSession(sessions, selected.id)
+                sessions.clear(); sessions.addAll(remaining); save()
+                engine.clearResult(); selectedId = null; confirmDelete = false
+            }) { Text("Удалить") } }, dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Отмена") } })
     }
 }
 
