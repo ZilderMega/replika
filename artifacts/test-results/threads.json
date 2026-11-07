@@ -1,0 +1,66 @@
+{
+  "device": "sdk_gphone64_x86_64",
+  "warning": "Requested NNAPI does not prove that a physical NPU executed any operator",
+  "runs": [
+    {
+      "requested_provider": "cpu",
+      "threads": 2,
+      "load_ms": 2667,
+      "asr_ms": 894,
+      "audio_ms": 35400,
+      "warmup_ms": 172,
+      "asr_runs_ms": [
+        987,
+        894,
+        882
+      ],
+      "asr_rtf": 0.025254237288135594,
+      "same_words": true
+    },
+    {
+      "requested_provider": "cpu",
+      "threads": 4,
+      "load_ms": 2184,
+      "asr_ms": 1035,
+      "audio_ms": 35400,
+      "warmup_ms": 160,
+      "asr_runs_ms": [
+        1155,
+        1035,
+        1005
+      ],
+      "asr_rtf": 0.02923728813559322,
+      "same_words": true
+    },
+    {
+      "requested_provider": "cpu",
+      "threads": 6,
+      "load_ms": 2206,
+      "asr_ms": 1507,
+      "audio_ms": 35400,
+      "warmup_ms": 200,
+      "asr_runs_ms": [
+        1537,
+        1392,
+        1507
+      ],
+      "asr_rtf": 0.04257062146892655,
+      "same_words": true
+    },
+    {
+      "requested_provider": "nnapi",
+      "threads": 4,
+      "load_ms": 2220,
+      "asr_ms": 1009,
+      "audio_ms": 35400,
+      "warmup_ms": 189,
+      "asr_runs_ms": [
+        997,
+        1009,
+        1090
+      ],
+      "asr_rtf": 0.02850282485875706,
+      "same_words": true
+    }
+  ]
+}

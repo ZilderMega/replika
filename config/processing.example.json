@@ -1,0 +1,14 @@
+{
+  "sample_rate": 16000,
+  "asr_window_ms": 6000,
+  "asr_context_ms": 1000,
+  "diarization_block_ms": 120000,
+  "threads": 4,
+  "provider": "cpu",
+  "speakers": 0,
+  "denoise": false,
+  "filter_pauses": false,
+  "punctuation": "rupunct",
+  "fragment_max_ms": 30000,
+  "separation_fragment_max_ms": 6000
+}

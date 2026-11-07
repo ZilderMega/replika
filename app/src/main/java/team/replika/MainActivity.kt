@@ -33,8 +33,11 @@ import androidx.compose.ui.unit.sp
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
+import team.replika.engine.clockText
+import team.replika.engine.PipelineCheckpoint
+import team.replika.engine.ProcessingOptions
 
-private data class Session(val id: String, val name: String, val uri: String, val transcript: String? = null, val formatted: String? = null)
+private data class Session(val id: String, val name: String, val uri: String, val transcript: String? = null, val formatted: String? = null, val edited: String? = null)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,18 +65,27 @@ private fun App() {
                 val data = JSONArray(prefs.getString("items", "[]"))
                 for (i in 0 until data.length()) {
                     val item = data.getJSONObject(i)
-                    add(Session(item.getString("id"), item.getString("name"), item.getString("uri"), item.optString("transcript").ifEmpty { null }, item.optString("formatted").ifEmpty { null }))
+                    add(Session(item.getString("id"), item.getString("name"), item.getString("uri"), item.optString("transcript").ifEmpty { null }, item.optString("formatted").ifEmpty { null }, item.optString("edited").ifEmpty { null }))
                 }
             } catch (_: Exception) { }
         }
     }
     fun save() {
         val data = JSONArray()
-        sessions.forEach { data.put(JSONObject().put("id", it.id).put("name", it.name).put("uri", it.uri).put("transcript", it.transcript ?: "").put("formatted", it.formatted ?: "")) }
+        sessions.forEach { data.put(JSONObject().put("id", it.id).put("name", it.name).put("uri", it.uri).put("transcript", it.transcript ?: "").put("formatted", it.formatted ?: "").put("edited", it.edited ?: "")) }
         prefs.edit().putString("items", data.toString()).apply()
     }
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
-    var showFormatted by remember(selectedId) { mutableStateOf(false) }
+    var showFormatted by remember(selectedId) { mutableStateOf(true) }
+    var showReviewed by remember(selectedId) { mutableStateOf(true) }
+    var normalizeTerms by rememberSaveable { mutableStateOf(true) }
+    var search by remember(selectedId) { mutableStateOf("") }
+    var onlyUncertain by remember(selectedId) { mutableStateOf(false) }
+    var options by remember { mutableStateOf(ProcessingOptions()) }
+    var advanced by rememberSaveable { mutableStateOf(false) }
+    var editor by remember { mutableStateOf<Pair<Int, Transcript>?>(null) }
+    var exportJson by remember { mutableStateOf<String?>(null) }
+    var useLlm by rememberSaveable { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     val recording by RecordingService.state.collectAsState()
     var consumedRecording by rememberSaveable { mutableStateOf<String?>(null) }
@@ -94,11 +106,50 @@ private fun App() {
     }
     var player by remember { mutableStateOf<MediaPlayer?>(null) }
     val selected = sessions.firstOrNull { it.id == selectedId }
+    val activeState = engineState.takeIf { it.sessionId == selectedId }
+    LaunchedEffect(activeState?.sessionId, activeState?.options) {
+        if (activeState != null && !engineState.busy) options = activeState.options
+    }
+    LaunchedEffect(activeState?.sessionId, activeState?.useLlm, activeState?.resumable, engineState.busy) {
+        if (activeState?.resumable == true) useLlm = activeState.useLlm
+    }
+    val live = activeState?.preview
+    val rawJson = remember(live, selected?.transcript) { live?.raw?.toJson() ?: selected?.transcript }
+    val formattedJson = remember(live, selected?.formatted) { live?.formatted?.toJson() ?: selected?.formatted }
+    val displayTranscript = remember(rawJson, formattedJson, selected?.edited, showFormatted, showReviewed, normalizeTerms) {
+        try {
+            val source = if (showReviewed && selected?.edited != null) selected.edited else if (showFormatted) formattedJson ?: rawJson else rawJson
+            val transcript = PipelineCheckpoint.transcript(JSONObject(source ?: "{}"))
+            if (normalizeTerms && (showFormatted || showReviewed && selected?.edited != null)) TranscriptTools.withTerms(transcript) else transcript
+        } catch (_: Exception) { Transcript(emptyList()) }
+    }
+    val displayJson = remember(displayTranscript) { displayTranscript.toJson() }
+    val lines = remember(displayJson) {
+        try { JSONObject(displayJson).getJSONArray("transcript") }
+        catch (_: Exception) { JSONArray() }
+    }
+    val uncertainCount = remember(displayTranscript) { displayTranscript.utterances.count { it.speakerId == "speaker_unknown" || it.speakerId.startsWith("speaker_review_") } }
+    val visibleLines = remember(displayTranscript, search, onlyUncertain) { displayTranscript.utterances.indices.filter {
+        val line = displayTranscript.utterances[it]
+        (!onlyUncertain || line.speakerId == "speaker_unknown" || line.speakerId.startsWith("speaker_review_")) &&
+            (search.isBlank() || line.text.contains(search, ignoreCase = true) || line.speakerId.contains(search, ignoreCase = true))
+    } }
+    LaunchedEffect(selectedId, engineState.modelsReady, engineState.busy) {
+        if (selectedId != null && engineState.modelsReady && !engineState.busy) engine.selectSession(selectedId!!)
+    }
+    LaunchedEffect(engineState.sessionId) {
+        if (engineState.busy && sessions.any { it.id == engineState.sessionId }) selectedId = engineState.sessionId
+    }
     LaunchedEffect(engineState.result) {
         val result = engineState.result
-        if (result != null && selectedId != null) {
-            val index = sessions.indexOfFirst { it.id == selectedId }
-            if (index >= 0) { sessions[index] = sessions[index].copy(transcript = result.raw.toJson(), formatted = result.formatted.toJson()); save() }
+        if (result != null && engineState.sessionId != null) {
+            val index = sessions.indexOfFirst { it.id == engineState.sessionId }
+            if (index >= 0) {
+                val previous = sessions[index]
+                val raw = result.raw.toJson()
+                sessions[index] = previous.copy(transcript = raw, formatted = result.formatted.toJson(), edited = previous.edited.takeIf { previous.transcript == raw })
+                save()
+            }
         }
     }
     DisposableEffect(Unit) { onDispose { player?.release() } }
@@ -112,10 +163,21 @@ private fun App() {
     }
     val exporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) try {
-            val json = selected?.transcript ?: error("Нет результата")
+            val json = exportJson
+            requireNotNull(json) { "Нет результата" }
             context.contentResolver.openOutputStream(uri)?.use { it.write(json.toByteArray(Charsets.UTF_8)) } ?: error("Нет доступа")
             message = "JSON сохранён."
         } catch (_: Exception) { message = "Не удалось сохранить JSON." }
+    }
+    val notifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    fun beginProcessing(punctuation: Boolean, forceSpeakers: Boolean = false) {
+        val session = selected ?: return
+        player?.release(); player = null
+        engine.transcribe(Uri.parse(session.uri), session.id, punctuation, options, forceSpeakers)
+        if (android.os.Build.VERSION.SDK_INT >= 33 && !prefs.getBoolean("notification_requested", false)) {
+            prefs.edit().putBoolean("notification_requested", true).apply()
+            notifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
     fun play(offset: Int? = null) {
         try {
@@ -140,6 +202,19 @@ private fun App() {
         base.copy(bodyLarge = base.bodyLarge.copy(fontFamily = family), bodyMedium = base.bodyMedium.copy(fontFamily = family), titleLarge = base.titleLarge.copy(fontFamily = family), titleMedium = base.titleMedium.copy(fontFamily = family), headlineMedium = base.headlineMedium.copy(fontFamily = family), labelLarge = base.labelLarge.copy(fontFamily = family))
     }
     MaterialTheme(colorScheme = lightColorScheme(primary = accent, background = paper, surface = paper, onSurface = ink), typography = typography) {
+        editor?.let { selection ->
+            val line = selection.second.utterances[selection.first]
+            val duration = activeState?.preview?.durationMs ?: selection.second.utterances.maxOfOrNull { it.endMs } ?: line.endMs
+            TranscriptEditor(line, engineState, duration,
+                onRefine = { target, mixed, separate, denoise -> selected?.let { engine.refine(Uri.parse(it.uri), it.id, target, mixed, separate, denoise) } },
+                onSave = { replacement, allSpeaker ->
+                    val base = if (allSpeaker) TranscriptTools.reassignSpeaker(selection.second, line.speakerId, replacement.first().speakerId) else selection.second
+                    val result = TranscriptTools.replace(base, selection.first, replacement, duration)
+                    val index = sessions.indexOfFirst { it.id == selectedId }
+                    require(index >= 0)
+                    sessions[index] = sessions[index].copy(edited = result.toJson()); save(); showReviewed = true; editor = null
+                }, cancel = engine::cancel, onClose = { editor = null })
+        }
         Scaffold(containerColor = paper) { padding ->
             LazyColumn(Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp), contentPadding = PaddingValues(top = 24.dp, bottom = 32.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 item {
@@ -163,8 +238,8 @@ private fun App() {
                         Text("Выберите запись, чтобы подготовить её к расшифровке.", fontSize = 18.sp, color = muted, lineHeight = 27.sp)
                     }
                     item {
-                        Button(onClick = { picker.launch(arrayOf("audio/*")) }, enabled = !engineState.busy && !recording.active, modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp), colors = ButtonDefaults.buttonColors(containerColor = accent, contentColor = Color.White), shape = RoundedCornerShape(4.dp)) {
-                            Icon(painterResource(R.drawable.solar_add), null, Modifier.size(26.dp)); Spacer(Modifier.width(12.dp)); Text("Добавить аудиозапись", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Button(onClick = { picker.launch(arrayOf("audio/*", "video/*")) }, enabled = !engineState.busy && !recording.active, modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp), colors = ButtonDefaults.buttonColors(containerColor = accent, contentColor = Color.White), shape = RoundedCornerShape(4.dp)) {
+                            Icon(painterResource(R.drawable.solar_add), null, Modifier.size(26.dp)); Spacer(Modifier.width(12.dp)); Text("Добавить аудио или видео", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                     item {
@@ -190,33 +265,97 @@ private fun App() {
                 } else {
                     item { TextButton(onClick = { player?.release(); player = null; engine.clearResult(); selectedId = null; message = null }, enabled = !engineState.busy, contentPadding = PaddingValues(0.dp)) { Icon(painterResource(R.drawable.solar_back), null); Text("История", fontSize = 17.sp) } }
                     item { Text("АУДИОЗАПИСЬ", color = accent, fontSize = 14.sp, letterSpacing = 1.2.sp, fontWeight = FontWeight.Bold); Spacer(Modifier.height(12.dp)); Text(selected.name, fontSize = 29.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold) }
+                    if (engineState.busy) item { ProcessingProgress(engineState, engine::cancel) }
+                    else if (engineState.sessionId == selectedId && engineState.elapsedMs > 0) item {
+                        Text("Время обработки: ${clockText(engineState.elapsedMs)}", color = muted)
+                    }
                     item { Column(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) { HorizontalDivider(color = ink); Text("Прослушивание", fontFamily = FontFamily.Serif, fontSize = 27.sp); Text("Запись хранится на вашем устройстве", color = muted, fontSize = 17.sp, lineHeight = 25.sp); Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = { play() }, shape = RoundedCornerShape(4.dp), modifier = Modifier.heightIn(min = 56.dp)) { Icon(painterResource(R.drawable.solar_play), null); Spacer(Modifier.width(8.dp)); Text("Слушать", fontSize = 17.sp) }
                         OutlinedButton(onClick = { player?.pause() }, shape = RoundedCornerShape(4.dp), modifier = Modifier.heightIn(min = 56.dp)) { Text("Пауза", fontSize = 17.sp) }
                     } } }
-                    if (selected.transcript == null) {
-                        item { Button(onClick = { player?.release(); player = null; engine.transcribe(Uri.parse(selected.uri)) }, enabled = engineState.modelsReady && !engineState.busy, modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp), shape = RoundedCornerShape(4.dp)) { Text("Начать обработку", fontSize = 18.sp) } }
-                    } else {
-                        item { Text("Стенограмма", fontFamily = FontFamily.Serif, fontSize = 29.sp); Row(verticalAlignment = Alignment.CenterVertically) { Switch(checked = showFormatted, onCheckedChange = { showFormatted = it }, enabled = selected.formatted != null); Spacer(Modifier.width(10.dp)); Text("Пунктуация LLM", fontSize = 16.sp) } }
-                        item { Button(onClick = { exporter.launch("transcript.json") }) { Icon(painterResource(R.drawable.solar_export), null); Spacer(Modifier.width(8.dp)); Text("Экспорт исходного JSON") } }
-                        val lines = try { JSONObject(if (showFormatted) selected.formatted ?: selected.transcript else selected.transcript).getJSONArray("transcript") } catch (_: Exception) { JSONArray() }
-                        if (lines.length() == 0) item { Text("Речь не обнаружена.", fontSize = 17.sp) }
-                        items(lines.length()) { i ->
+                    if (!engineState.busy) item {
+                        Text("Участников: ${if (options.speakers == 0) "авто" else options.speakers.toString()}")
+                        Slider(options.speakers.toFloat(), { options = options.copy(speakers = it.toInt()) }, valueRange = 0f..8f, steps = 7)
+                        Text("Авто — определить голоса; 1 — вся запись с одним участником; 2–8 — верхняя граница числа голосов. Неоднозначные участки требуют проверки.", color = muted, fontSize = 13.sp)
+                        if (selected.transcript != null && activeState?.resumable != true) {
+                            OutlinedButton(onClick = { beginProcessing(activeState?.useLlm == true, true) }, enabled = engineState.modelsReady) { Text("Пересчитать участников") }
+                            Text("Сохраняет распознанные слова; заново определяет участников и пунктуацию. Правки можно экспортировать перед пересчётом.", color = muted, fontSize = 13.sp)
+                        }
+                    }
+                    if (!engineState.busy && (selected.transcript == null || activeState?.resumable == true)) {
+                        item {
+                            TextButton(onClick = { advanced = !advanced }) { Text("Настройки качества и скорости") }
+                            if (advanced) {
+                                Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(options.denoise, { options = options.copy(denoise = it) }); Text("Очистить фоновый шум") }
+                                Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(options.filterPauses, { options = options.copy(filterPauses = it) }); Text("Пропускать паузы (VAD)") }
+                                Text("Потоков: ${options.threads}")
+                                Slider(options.threads.toFloat(), { options = options.copy(threads = it.toInt()) }, valueRange = 1f..8f, steps = 6)
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    FilterChip(options.provider == "cpu", { options = options.copy(provider = "cpu") }, label = { Text("CPU") })
+                                    FilterChip(options.provider == "nnapi", { options = options.copy(provider = "nnapi") }, label = { Text("NNAPI") })
+                                }
+                                Text("NNAPI — экспериментальный режим: ускорение зависит от устройства. Очистка шума может менять качество речи; исходный файл сохраняется.", color = muted)
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Switch(checked = useLlm, onCheckedChange = { useLlm = it })
+                                Spacer(Modifier.width(10.dp)); Text("Пунктуация через LLM", fontSize = 16.sp)
+                            }
+                            Text(if (useLlm) "Генеративная модель: обработка займёт больше времени." else "Быстрый режим: текст, участники и пунктуация небольшой моделью.", color = muted)
+                            Button(onClick = { beginProcessing(useLlm) }, enabled = engineState.modelsReady, modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp), shape = RoundedCornerShape(4.dp)) { Text(if (activeState?.resumable == true) "Продолжить обработку" else "Начать обработку", fontSize = 18.sp) }
+                        }
+                    }
+                    if (rawJson != null) {
+                        item {
+                            Text(if (engineState.busy || activeState?.resumable == true) "Промежуточная стенограмма" else "Стенограмма", fontFamily = FontFamily.Serif, fontSize = 29.sp)
+                            if (engineState.busy) Text("Текст появляется по мере обработки. Участники и пунктуация уточняются на следующих этапах.", color = muted)
+                            Row(verticalAlignment = Alignment.CenterVertically) { Switch(checked = showFormatted, onCheckedChange = { showFormatted = it }, enabled = formattedJson != null); Spacer(Modifier.width(10.dp)); Text("Пунктуация", fontSize = 16.sp) }
+                            Row(verticalAlignment = Alignment.CenterVertically) { Switch(normalizeTerms, { normalizeTerms = it }); Spacer(Modifier.width(10.dp)); Text("Названия: Java, YouTube") }
+                            Text("Словарь названий меняет только отображаемую версию. Для других слов выберите реплику и уточнение через Whisper.", color = muted, fontSize = 13.sp)
+                            if (selected.edited != null) Row(verticalAlignment = Alignment.CenterVertically) { Switch(showReviewed, { showReviewed = it }); Spacer(Modifier.width(10.dp)); Text("Мои правки") }
+                            if (!engineState.busy && selected.transcript != null && activeState?.useLlm != true && activeState?.resumable != true) {
+                                OutlinedButton(onClick = { beginProcessing(true) }, enabled = engineState.modelsReady) { Text("Обработать пунктуацию LLM") }
+                            }
+                        }
+                        item {
+                            Button(onClick = { exportJson = rawJson; exporter.launch("transcript-original.json") }) { Icon(painterResource(R.drawable.solar_export), null); Spacer(Modifier.width(8.dp)); Text("Экспорт исходного JSON") }
+                            OutlinedButton(onClick = { exportJson = displayJson; exporter.launch("transcript-reviewed.json") }) { Text("Экспорт версии на экране") }
+                            OutlinedTextField(search, { search = it }, label = { Text("Найти слово или участника") }, modifier = Modifier.fillMaxWidth())
+                            if (uncertainCount > 0) FilterChip(onlyUncertain, { onlyUncertain = !onlyUncertain }, label = { Text("Проверить участника: $uncertainCount") })
+                        }
+                        if (lines.length() == 0) item { Text(if (engineState.busy || activeState?.resumable == true) "В обработанной части речь пока не обнаружена." else "Речь не обнаружена.", fontSize = 17.sp) }
+                        items(visibleLines, key = { it }) { i ->
                             val line = lines.getJSONObject(i)
-                            Column { TextButton(onClick = { play(line.optLong("start_ms").coerceIn(0, Int.MAX_VALUE.toLong()).toInt()) }) { Text("${line.optString("speaker_id")} · ${line.optLong("start_ms")} мс") }; Text(line.optString("text")) }
+                            Column {
+                                TextButton(onClick = { play(line.optLong("start_ms").coerceIn(0, Int.MAX_VALUE.toLong()).toInt()) }) { Text("${line.optString("speaker_id")} · ${clockText(line.optLong("start_ms"))}") }
+                                Text(line.optString("text"))
+                                if (!engineState.busy && activeState?.resumable != true) TextButton(onClick = { editor = i to displayTranscript }) { Text("Править / распознать фрагмент") }
+                            }
                         }
                     }
                 }
-                if (engineState.busy) item {
-                    Text(engineState.stage, fontSize = 17.sp)
-                    LinearProgressIndicator(progress = { engineState.progress.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
-                    Text("Оставьте приложение открытым. Отмена может занять некоторое время.", fontSize = 16.sp, lineHeight = 24.sp)
-                    OutlinedButton(onClick = engine::cancel) { Text("Отменить", fontSize = 17.sp) }
-                }
+                if (engineState.busy && selected == null) item { ProcessingProgress(engineState, engine::cancel) }
                 engineState.error?.let { error -> item { Text(error, color = MaterialTheme.colorScheme.error, fontSize = 17.sp); if (!engineState.modelsReady && !engineState.busy) TextButton(onClick = engine::prepareModels) { Text("Повторить подготовку") } } }
                 message?.let { item { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 17.sp, lineHeight = 25.sp) } }
             }
         }
+    }
+}
+
+@Composable
+private fun ProcessingProgress(state: EngineUiState, cancel: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(state.stage, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        if (state.stageTotal > 0) {
+            val fraction = (state.stageCompleted.toFloat() / state.stageTotal).coerceIn(0f, 1f)
+            LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth())
+            Text("Этап выполнен на ${(fraction * 100).toInt()}%")
+        } else LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        if (state.detail.isNotBlank()) Text(state.detail)
+        Text("Прошло: ${clockText(state.elapsedMs)} · текущий этап: ${clockText(state.stageElapsedMs)}")
+        if (state.unitKey.isNotBlank()) Text("Текущий участок обрабатывается: ${clockText(state.unitElapsedMs)}")
+        Text(state.remainingMs?.let { "До конца текущего этапа ≈ ${clockText(it)}" } ?: "Оцениваем оставшееся время этапа…")
+        Text("Можно свернуть приложение. Готовые части сохраняются.", fontSize = 15.sp)
+        OutlinedButton(onClick = cancel) { Text("Приостановить", fontSize = 17.sp) }
     }
 }
 

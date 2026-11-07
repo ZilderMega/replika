@@ -1,0 +1,7 @@
+kind,version,device,provider,threads,audio_ms,elapsed_ms,rtf,same_words,wer,der,notes
+ASR median of 3 warm runs,0.6.0,sdk_gphone64_x86_64,cpu,2,35400,894,0.025254237288135594,True,,,Inference only; loading excluded; requested NNAPI is not proof of NPU
+ASR median of 3 warm runs,0.6.0,sdk_gphone64_x86_64,cpu,4,35400,1035,0.02923728813559322,True,,,Inference only; loading excluded; requested NNAPI is not proof of NPU
+ASR median of 3 warm runs,0.6.0,sdk_gphone64_x86_64,cpu,6,35400,1507,0.04257062146892655,True,,,Inference only; loading excluded; requested NNAPI is not proof of NPU
+ASR median of 3 warm runs,0.6.0,sdk_gphone64_x86_64,nnapi,4,35400,1009,0.02850282485875706,True,,,Inference only; loading excluded; requested NNAPI is not proof of NPU
+Full pipeline run 1,0.6.0,sdk_gphone64_x86_64,cpu,4,35400,14277,0.4033050847457627,,,,Already imported audio; startup model preparation excluded; stage model loading included
+Full pipeline run 2,0.6.0,sdk_gphone64_x86_64,cpu,4,35400,12887,0.36403954802259886,,,,Already imported audio; startup model preparation excluded; stage model loading included

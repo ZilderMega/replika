@@ -12,7 +12,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /** Disk-backed mono PCM16. No compressed recording or full float waveform in the Java heap. */
-class PcmAudio(val file: File, val samples: Long) : AutoCloseable {
+class PcmAudio(val file: File, val samples: Long, private val deleteOnClose: Boolean = true) : AutoCloseable {
     val durationMs get() = samples * 1000 / RATE
     fun read(start: Long, count: Int): FloatArray {
         require(start >= 0 && count >= 0 && start + count <= samples)
@@ -21,12 +21,13 @@ class PcmAudio(val file: File, val samples: Long) : AutoCloseable {
         val buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
         return FloatArray(count) { buffer.short / 32768f }
     }
-    override fun close() { file.delete() }
+    override fun close() { if (deleteOnClose) file.delete() }
     companion object { const val RATE = 16000 }
 }
 
 /** Stateful low-pass + linear resampler; phase persists across codec buffers. */
-class MonoResampler(private val inputRate: Int, private val emit: (Float) -> Unit) {
+fun interface FloatSampleSink { fun emit(value: Float) }
+class MonoResampler(private val inputRate: Int, private val emit: FloatSampleSink) {
     private var index = 0L
     private var next = 0.0
     private var previous = 0f
@@ -37,7 +38,7 @@ class MonoResampler(private val inputRate: Int, private val emit: (Float) -> Uni
         val current = if (inputRate > PcmAudio.RATE) filtered else value
         while (next <= index) {
             val fraction = (next - (index - 1)).toFloat().coerceIn(0f, 1f)
-            emit(if (index == 0L) current else previous + (current - previous) * fraction)
+            emit.emit(if (index == 0L) current else previous + (current - previous) * fraction)
             next += inputRate.toDouble() / PcmAudio.RATE
         }
         previous = current
@@ -46,7 +47,9 @@ class MonoResampler(private val inputRate: Int, private val emit: (Float) -> Uni
 }
 
 class AudioDecoder(private val cacheDir: File) {
-    suspend fun decode(input: File): PcmAudio {
+    suspend fun decode(input: File, startMs: Long = 0, endMs: Long? = null,
+        progress: (Long, Long) -> Unit = { _, _ -> }): PcmAudio {
+        require(startMs >= 0 && (endMs == null || endMs > startMs))
         val output = File.createTempFile("replika-pcm-", ".pcm", cacheDir)
         val extractor = MediaExtractor()
         var codec: MediaCodec? = null
@@ -59,6 +62,11 @@ class AudioDecoder(private val cacheDir: File) {
             } ?: error("В файле не найдена аудиодорожка")
             extractor.selectTrack(track)
             val format = extractor.getTrackFormat(track)
+            val durationUs = if (format.containsKey(MediaFormat.KEY_DURATION)) format.getLong(MediaFormat.KEY_DURATION) else 0L
+            val clipEndUs = endMs?.times(1000) ?: Long.MAX_VALUE
+            val clipDurationMs = if (durationUs <= 0 && endMs == null) 0L else
+                ((minOf(durationUs.takeIf { it > 0 } ?: clipEndUs, clipEndUs) / 1000) - startMs).coerceAtLeast(0)
+            if (startMs > 0) extractor.seekTo(startMs * 1000, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
             codec = MediaCodec.createDecoderByType(requireNotNull(format.getString(MediaFormat.KEY_MIME)))
             codec.configure(format, null, null, 0)
             codec.start()
@@ -69,17 +77,23 @@ class AudioDecoder(private val cacheDir: File) {
             var outputEnded = false
             val info = MediaCodec.BufferInfo()
             output.outputStream().buffered().use { sink ->
+                val pcmBytes = ByteArray(64 * 1024)
+                var pcmPosition = 0
                 fun resampler() = MonoResampler(rate) { value ->
                     val sample = (value.coerceIn(-1f, 1f) * 32767).toInt()
-                    sink.write(sample and 255); sink.write((sample shr 8) and 255)
+                    pcmBytes[pcmPosition++] = sample.toByte()
+                    pcmBytes[pcmPosition++] = (sample shr 8).toByte()
+                    if (pcmPosition == pcmBytes.size) { sink.write(pcmBytes); pcmPosition = 0 }
                     total++
                 }
                 var converter = resampler()
                 var idleSince = System.nanoTime()
+                var lastProgress = 0L
                 while (!outputEnded) {
                     currentCoroutineContext().ensureActive()
                     if (!inputEnded) {
-                        val i = codec.dequeueInputBuffer(10_000)
+                        // Never wait for an input slot while decoded output may need draining.
+                        val i = codec.dequeueInputBuffer(0)
                         if (i >= 0) {
                             val buffer = requireNotNull(codec.getInputBuffer(i))
                             val size = extractor.readSampleData(buffer, 0)
@@ -110,19 +124,29 @@ class AudioDecoder(private val cacheDir: File) {
                                 b.position(info.offset); b.limit(info.offset + info.size)
                                 val width = if (encoding == AudioFormat.ENCODING_PCM_FLOAT) 4 else 2
                                 require(b.remaining() % (channels * width) == 0)
+                                var frame = 0L
                                 while (b.remaining() >= channels * width) {
                                     var mono = 0f
                                     repeat(channels) { mono += if (width == 4) b.float else b.short / 32768f }
                                     require(mono.isFinite()) { "Повреждённые аудиоданные" }
-                                    converter.push(mono / channels)
+                                    val timeUs = info.presentationTimeUs + frame * 1_000_000 / rate
+                                    if (timeUs >= startMs * 1000 && timeUs < clipEndUs) converter.push(mono / channels)
+                                    frame++
                                 }
-                                outputEnded = info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0
+                                outputEnded = info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0 ||
+                                    info.presentationTimeUs + frame * 1_000_000 / rate >= clipEndUs
+                                val now = android.os.SystemClock.elapsedRealtime()
+                                if (now - lastProgress >= 250 || outputEnded) {
+                                    progress(total * 1000 / PcmAudio.RATE, clipDurationMs)
+                                    lastProgress = now
+                                }
                                 idleSince = System.nanoTime()
                             } finally { codec.releaseOutputBuffer(i, false) }
                         }
                     }
                     check(System.nanoTime() - idleSince < 30_000_000_000L) { "Декодер перестал отвечать" }
                 }
+                if (pcmPosition > 0) sink.write(pcmBytes, 0, pcmPosition)
             }
             require(total > 0) { "Аудиофайл пуст" }
             success = true

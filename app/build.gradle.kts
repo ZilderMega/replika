@@ -6,7 +6,7 @@ plugins {
 android {
     namespace = "team.replika"
     compileSdk = 35
-    defaultConfig { applicationId = "team.replika"; minSdk = 26; targetSdk = 35; versionCode = 4; versionName = "0.4.0" }
+    defaultConfig { applicationId = "team.replika"; minSdk = 26; targetSdk = 35; versionCode = 6; versionName = "0.6.0" }
     buildFeatures { compose = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     // sherpa JNI resolves the boxed invoke(IIJ) method of Kotlin lambda classes.
@@ -22,7 +22,9 @@ android {
     sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/modelAssets"))
     androidResources { noCompress += listOf("onnx", "gguf") }
 }
-val modelNames = listOf("encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt", "segmentation.onnx", "embedding.onnx", "llm.gguf", "manifest.json")
+val modelNames = listOf("encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt", "segmentation.onnx", "embedding.onnx", "llm.gguf",
+    "punctuation.onnx", "punctuation-tokenizer.json", "punctuation-config.json", "denoise.onnx", "vad.onnx",
+    "whisper-encoder.onnx", "whisper-decoder.onnx", "whisper-tokens.txt", "separation.onnx", "manifest.json")
 val bundleModels by tasks.registering(Sync::class) {
     from(rootProject.file(".models")) { include(modelNames) }
     into(layout.buildDirectory.dir("generated/modelAssets/models"))

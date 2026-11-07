@@ -1,0 +1,12 @@
+Russian punctuation and capitalization: RUPunct/RUPunct_small.
+Upstream model card: https://huggingface.co/RUPunct/RUPunct_small
+License declared by upstream: MIT.
+
+INT8 ONNX export by ekhodzitsky:
+https://huggingface.co/ekhodzitsky/rupunct-small-onnx
+Pinned revision: c4a35be7e4a413cdfb08427db75b621b571569c9
+License declared by the exporter: MIT (inherited from RUPunct).
+Model, tokenizer and label mapping are used without changing the weights.
+
+Inference uses the ONNX Runtime distributed inside sherpa-onnx-2.0.1.aar.
+ONNX Runtime: https://github.com/microsoft/onnxruntime (MIT).

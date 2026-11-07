@@ -3,53 +3,73 @@ package team.replika.engine
 import com.k2fsa.sherpa.onnx.*
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlin.math.sqrt
 
 object LongDiarization {
     suspend fun process(pcm: PcmAudio, diarizer: OfflineSpeakerDiarization, models: ModelFiles, threads: Int,
-        blockSeconds: Int = 300, progress: (Float) -> Unit): List<SpeakerSpan> {
-        val spans = mutableListOf<SpeakerSpan>()
-        val prototypes = mutableListOf<FloatArray>()
+        blockSeconds: Int = 120, checkpoint: PipelineCheckpoint? = null,
+        expectedSpeakers: Int = 0, onBlock: suspend () -> Unit = {}, progress: (Float) -> Unit): List<SpeakerSpan> {
+        val spans = checkpoint?.spans ?: mutableListOf()
+        val profiles = checkpoint?.voiceProfiles?.map { it.snapshot() }?.toMutableList() ?: mutableListOf()
         val extractor = SpeakerEmbeddingExtractor(config = SpeakerEmbeddingExtractorConfig(model = models.path("embedding.onnx"), numThreads = threads))
         try {
-            var offset = 0L
+            var offset = checkpoint?.diarizedSamples ?: 0L
             while (offset < pcm.samples) {
                 currentCoroutineContext().ensureActive()
+                progress(offset.toFloat() / pcm.samples)
                 val count = minOf(blockSeconds.toLong() * 16000, pcm.samples - offset).toInt()
-                val audio = pcm.read(offset, count)
+                val audioStart = (offset - 16000).coerceAtLeast(0)
+                val audioEnd = (offset + count + 16000).coerceAtMost(pcm.samples)
+                val audio = pcm.read(audioStart, (audioEnd - audioStart).toInt())
                 if (audio.none { kotlin.math.abs(it) > 1f / 32768 }) {
                     offset += count
+                    checkpoint?.diarizedSamples = offset
+                    onBlock()
                     progress(offset.toFloat() / pcm.samples)
                     continue
                 }
-                val local = diarizer.process(audio.copyOf(maxOf(audio.size, 16000)))
-                val mapping = mutableMapOf<Int, Int>()
+                val local = diarizer.processWithCallback(audio.copyOf(maxOf(audio.size, 16000)), { done, total, _ ->
+                    // sherpa ignores the return value; cancellation is checked after the native call.
+                    if (total > 0) progress((offset + count * done.toDouble() / total).toFloat() / pcm.samples)
+                    0
+                })
+                currentCoroutineContext().ensureActive()
+                val observations = mutableListOf<VoiceObservation>()
                 for ((id, segments) in local.groupBy { it.speaker }) {
                     currentCoroutineContext().ensureActive()
-                    val representative = segments.maxBy { it.end - it.start }
-                    val first = offset + (representative.start * 16000).toLong()
-                    val length = minOf(((representative.end - representative.start) * 16000).toLong(), 160000, pcm.samples - first).toInt()
-                    if (length < 8000) continue
-                    val stream = extractor.createStream()
-                    val vector = try {
-                        stream.acceptWaveform(pcm.read(first, length), 16000)
-                        stream.inputFinished()
-                        if (!extractor.isReady(stream)) continue
-                        extractor.compute(stream)
-                    } finally { stream.release() }
-                    val norm = sqrt(vector.sumOf { (it * it).toDouble() }).toFloat()
-                    if (norm <= 0 || !norm.isFinite()) continue
-                    val normalized = FloatArray(vector.size) { vector[it] / norm }
-                    val scores = prototypes.map { p -> p.indices.sumOf { (p[it] * normalized[it]).toDouble() } }
-                    val best = scores.indices.maxByOrNull { scores[it] }
-                    mapping[id] = if (best != null && scores[best] >= .65 && best !in mapping.values) best
-                        else prototypes.size.also { prototypes += normalized }
+                    fun interval(start: Float, end: Float) =
+                        (audioStart / 16 + (start * 1000).toLong()).coerceIn(0, pcm.durationMs)..
+                            (audioStart / 16 + (end * 1000).toLong()).coerceIn(0, pcm.durationMs)
+                    val owned = segments.map { interval(it.start, it.end) }
+                    val others = local.filter { it.speaker != id }.map { interval(it.start, it.end) }
+                    val snippets = VoiceMatcher.sampleIntervals(VoiceMatcher.cleanIntervals(owned, others))
+                    val vectors = mutableListOf<FloatArray>()
+                    var support = 0L
+                    for (snippet in snippets) {
+                        currentCoroutineContext().ensureActive()
+                        val stream = extractor.createStream()
+                        try {
+                            stream.acceptWaveform(pcm.read(snippet.first * 16, ((snippet.last - snippet.first) * 16).toInt()), 16000)
+                            stream.inputFinished()
+                            if (extractor.isReady(stream)) VoiceMatcher.normalize(extractor.compute(stream))?.let {
+                                vectors += it; support += snippet.last - snippet.first
+                            }
+                        } finally { stream.release() }
+                    }
+                    observations += VoiceObservation(id, owned, vectors, support)
                 }
-                val ms = offset / 16
-                spans += local.mapNotNull { segment -> mapping[segment.speaker]?.let { id ->
-                    SpeakerSpan(ms + (segment.start * 1000).toLong(), minOf(pcm.durationMs, ms + (segment.end * 1000).toLong()), id)
-                } }
+                val mapping = VoiceMatcher.assign(observations, profiles, expectedSpeakers)
+                val ms = audioStart / 16
+                spans += local.mapNotNull { segment ->
+                    val id = mapping[segment.speaker] ?: -1
+                    val start = maxOf(offset / 16, ms + (segment.start * 1000).toLong())
+                    val end = minOf((offset + count) / 16, ms + (segment.end * 1000).toLong())
+                    if (end > start) SpeakerSpan(start, end, id) else null
+                }
                 offset += count
+                checkpoint?.diarizedSamples = offset
+                checkpoint?.voiceProfiles?.apply { clear(); addAll(profiles.map { it.snapshot() }) }
+                checkpoint?.prototypes?.apply { clear(); addAll(profiles.map { it.centroid.copyOf() }) }
+                onBlock()
                 progress(offset.toFloat() / pcm.samples)
             }
         } finally { extractor.release() }

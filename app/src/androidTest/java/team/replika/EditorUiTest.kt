@@ -1,0 +1,94 @@
+package team.replika
+
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.view.accessibility.AccessibilityNodeInfo
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import kotlinx.coroutines.*
+import org.json.JSONArray
+import org.json.JSONObject
+import org.junit.Assert.*
+import org.junit.Test
+import org.junit.runner.RunWith
+import team.replika.engine.BundledModels
+import java.io.File
+
+@RunWith(AndroidJUnit4::class)
+class EditorUiTest {
+    private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
+    private val context get() = instrumentation.targetContext
+    private fun nodes(root: AccessibilityNodeInfo?): List<AccessibilityNodeInfo> {
+        if (root == null) return emptyList()
+        return listOf(root) + (0 until root.childCount).flatMap { nodes(root.getChild(it)) }
+    }
+    private fun click(node: AccessibilityNodeInfo) {
+        var current: AccessibilityNodeInfo? = node
+        while (current != null) {
+            if (current.isClickable && current.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
+            current = current.parent
+        }
+        error("No clickable ancestor for ${node.text}")
+    }
+    @Test fun realTranscriptCanBeReviewedWithoutChangingOriginal() = runBlocking {
+        BundledModels(context).prepare()
+        val id = "instrumentation-editor"
+        val prefs = context.getSharedPreferences("sessions", 0)
+        val previous = prefs.getString("items", "[]")
+        val directory = ProcessingService.jobDirectory(context.filesDir, id)
+        directory.deleteRecursively()
+        prefs.edit().putString("items", JSONArray(previous).put(JSONObject().put("id", id).put("name", "Демонстрация: русский диалог")
+            .put("uri", Uri.fromFile(File(context.filesDir, "test.wav")).toString())).toString()).commit()
+        val ui = instrumentation.uiAutomation
+        try {
+            ui.executeShellCommand("am start -W -f 0x10008000 -n ${context.packageName}/.MainActivity").let {
+                android.os.ParcelFileDescriptor.AutoCloseInputStream(it).bufferedReader().use { reader -> reader.readText() }
+            }
+            delay(1500)
+            withTimeout(60_000) { while (ProcessingService.mutable.value.busy) delay(100) }
+            context.startForegroundService(Intent(context, ProcessingService::class.java).putExtra("session_id", id)
+                .putExtra("uri", Uri.fromFile(File(context.filesDir, "test.wav")).toString()))
+            withTimeout(30_000) { while (ProcessingService.mutable.value.sessionId != id || !ProcessingService.mutable.value.busy) delay(50) }
+            withTimeout(90_000) { while (ProcessingService.mutable.value.busy) delay(100) }
+            assertNull(ProcessingService.mutable.value.error)
+            val original = requireNotNull(ProcessingService.mutable.value.result).raw.toJson()
+            delay(800)
+            var edit: AccessibilityNodeInfo? = null
+            repeat(12) {
+                if (edit == null) {
+                    val tree = nodes(ui.rootInActiveWindow)
+                    edit = tree.firstOrNull { it.text?.toString()?.contains("Править / распознать фрагмент") == true }
+                    if (edit == null) { tree.firstOrNull { it.isScrollable }?.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD); delay(350) }
+                }
+            }
+            click(requireNotNull(edit) { "Editor action is not visible" })
+            delay(500)
+            val textFields = nodes(ui.rootInActiveWindow).filter { it.isEditable }
+            assertTrue(textFields.size >= 4)
+            val changed = "Ручная правка: Java и YouTube."
+            assertTrue(textFields.last().performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, Bundle().apply {
+                putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, changed)
+            }))
+            delay(300)
+            ui.takeScreenshot().let { bitmap ->
+                File(context.filesDir, "editor-screen.png").outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+                bitmap.recycle()
+            }
+            click(requireNotNull(nodes(ui.rootInActiveWindow).firstOrNull { it.text?.toString() == "Сохранить правки" }))
+            delay(600)
+            val record = JSONArray(prefs.getString("items", "[]")).let { rows -> (0 until rows.length()).map { rows.getJSONObject(it) }.first { it.getString("id") == id } }
+            assertEquals(original, record.getString("transcript"))
+            assertTrue(record.getString("edited").contains(changed))
+            File(context.filesDir, "editor-proof.json").writeText(JSONObject().put("original_unchanged", true)
+                .put("raw", JSONObject(original)).put("reviewed", JSONObject(record.getString("edited"))).toString(2))
+        } finally {
+            if (ProcessingService.mutable.value.busy && ProcessingService.mutable.value.sessionId == id) {
+                context.startService(Intent(context, ProcessingService::class.java).setAction("cancel"))
+                withContext(NonCancellable) { withTimeoutOrNull(30_000) { while (ProcessingService.mutable.value.busy) delay(100) } }
+            }
+            prefs.edit().putString("items", previous).commit()
+            directory.deleteRecursively()
+        }
+    }
+}

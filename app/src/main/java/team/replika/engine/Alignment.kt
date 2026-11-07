@@ -8,17 +8,27 @@ data class Word(val text: String, val startMs: Long, val endMs: Long)
 
 object Alignment {
     fun assemble(words: List<Word>, spans: List<SpeakerSpan>, durationMs: Long): List<Utterance> {
-        val ids = spans.sortedBy { it.startMs }.map { it.id }.distinct().withIndex().associate { it.value to "speaker_${it.index + 1}" }
+        val ids = spans.filter { it.id >= 0 }.sortedBy { it.startMs }.map { it.id }.distinct().withIndex().associate { it.value to "speaker_${it.index + 1}" }
         val result = mutableListOf<Utterance>()
+        val orderedSpans = spans.sortedBy { it.startMs }
+        val active = mutableListOf<SpeakerSpan>()
+        var nextSpan = 0
         words.sortedBy { it.startMs }.forEach { word ->
             val start = word.startMs.coerceIn(0, durationMs)
             val end = word.endMs.coerceIn(start, durationMs)
-            val overlaps = spans.groupBy { it.id }.mapValues { (_, intervals) ->
-                intervals.sumOf { (minOf(end, it.endMs) - maxOf(start, it.startMs)).coerceAtLeast(0) }
-            }.filterValues { it > 0 }.entries.sortedByDescending { it.value }
+            active.removeAll { it.endMs <= start }
+            while (nextSpan < orderedSpans.size && orderedSpans[nextSpan].startMs < end) {
+                active += orderedSpans[nextSpan++]
+            }
+            val overlaps = mutableMapOf<Int, Long>()
+            active.forEach { span ->
+                val overlap = (minOf(end, span.endMs) - maxOf(start, span.startMs)).coerceAtLeast(0)
+                if (overlap > 0) overlaps[span.id] = (overlaps[span.id] ?: 0) + overlap
+            }
+            val ranked = overlaps.entries.sortedByDescending { it.value }
             // Do not invent a second transcript for overlapping voices.
-            val speaker = if (overlaps.isEmpty() || (overlaps.size > 1 && overlaps[1].value * 2 >= overlaps[0].value))
-                "speaker_unknown" else ids.getValue(overlaps[0].key)
+            val speaker = if (ranked.isEmpty() || ranked[0].key < 0 || (ranked.size > 1 && ranked[1].value * 2 >= ranked[0].value))
+                "speaker_unknown" else ids.getValue(ranked[0].key)
             val previous = result.lastOrNull()
             if (previous != null && previous.speakerId == speaker && start - previous.endMs <= 800 && end - previous.startMs <= 20_000) {
                 result[result.lastIndex] = previous.copy(endMs = maxOf(previous.endMs, end), text = previous.text + " " + word.text)

@@ -1,0 +1,96 @@
+{
+  "reference_smoke_only": "я тебя люблю",
+  "noisy": {
+    "raw": {
+      "transcript": [
+        {
+          "speaker_id": "speaker_unknown",
+          "start_ms": 0,
+          "end_ms": 300,
+          "text": "я"
+        },
+        {
+          "speaker_id": "speaker_1",
+          "start_ms": 5720,
+          "end_ms": 7420,
+          "text": "тебя люблю"
+        }
+      ]
+    },
+    "formatted": {
+      "transcript": [
+        {
+          "speaker_id": "speaker_unknown",
+          "start_ms": 0,
+          "end_ms": 300,
+          "text": "я"
+        },
+        {
+          "speaker_id": "speaker_1",
+          "start_ms": 5720,
+          "end_ms": 7420,
+          "text": "Тебя люблю."
+        }
+      ]
+    },
+    "duration_ms": 9240,
+    "elapsed_ms": 5990,
+    "stages_ms": {
+      "Проверка моделей": 1,
+      "Подготовка звука": 163,
+      "Распознавание речи": 3116,
+      "Определение участников": 2284,
+      "Сборка реплик": 1,
+      "Быстрая пунктуация": 425,
+      "Готово": 0
+    },
+    "rejected_llm_edits": 0
+  },
+  "denoised": {
+    "raw": {
+      "transcript": [
+        {
+          "speaker_id": "speaker_unknown",
+          "start_ms": 0,
+          "end_ms": 300,
+          "text": "я"
+        },
+        {
+          "speaker_id": "speaker_unknown",
+          "start_ms": 5759,
+          "end_ms": 7420,
+          "text": "тебя люблю"
+        }
+      ]
+    },
+    "formatted": {
+      "transcript": [
+        {
+          "speaker_id": "speaker_unknown",
+          "start_ms": 0,
+          "end_ms": 300,
+          "text": "я"
+        },
+        {
+          "speaker_id": "speaker_unknown",
+          "start_ms": 5759,
+          "end_ms": 7420,
+          "text": "Тебя люблю."
+        }
+      ]
+    },
+    "duration_ms": 9240,
+    "elapsed_ms": 5992,
+    "stages_ms": {
+      "Проверка моделей": 1,
+      "Подготовка звука": 134,
+      "Очистка фонового шума": 1142,
+      "Распознавание речи": 2632,
+      "Определение участников": 1651,
+      "Сборка реплик": 0,
+      "Быстрая пунктуация": 432,
+      "Готово": 0
+    },
+    "rejected_llm_edits": 0
+  }
+}

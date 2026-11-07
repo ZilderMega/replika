@@ -9,6 +9,7 @@
 struct Engine {
     llama_model * model = nullptr;
     llama_context * ctx = nullptr;
+    std::vector<llama_token> previous_input;
     ~Engine() { if (ctx) llama_free(ctx); if (model) llama_free_model(model); }
 };
 static void fail(JNIEnv *env, const char *message) {
@@ -47,9 +48,17 @@ Java_team_replika_engine_LocalLlm_generate(JNIEnv *env, jobject, jlong handle, j
         std::vector<llama_token> tokens(n);
         if (llama_tokenize(engine->model, input.data(), size, tokens.data(), n, true, true) != n)
             throw std::runtime_error("Tokenization failed");
-        llama_kv_cache_clear(engine->ctx);
+        // Keep the common instruction prefix; remove the previous answer and changed input.
+        int common = 0;
+        while (common < n - 1 && common < static_cast<int>(engine->previous_input.size()) &&
+               tokens[common] == engine->previous_input[common]) ++common;
+        if (!llama_kv_cache_seq_rm(engine->ctx, 0, common, -1)) {
+            llama_kv_cache_clear(engine->ctx);
+            common = 0;
+        }
+        engine->previous_input = tokens;
         auto sampler = std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)>(llama_sampler_init_greedy(), llama_sampler_free);
-        auto batch = llama_batch_get_one(tokens.data(), n);
+        auto batch = llama_batch_get_one(tokens.data() + common, n - common);
         auto method = env->GetMethodID(env->GetObjectClass(active), "invoke", "()Ljava/lang/Object;");
         auto boolClass = env->FindClass("java/lang/Boolean");
         auto boolMethod = env->GetMethodID(boolClass, "booleanValue", "()Z");
@@ -78,6 +87,15 @@ Java_team_replika_engine_LocalLlm_generate(JNIEnv *env, jobject, jlong handle, j
         if (result) env->SetByteArrayRegion(result, 0, output.size(), reinterpret_cast<const jbyte *>(output.data()));
         return result;
     } catch (const std::exception &e) { fail(env, e.what()); return nullptr; }
+}
+extern "C" JNIEXPORT jint JNICALL
+Java_team_replika_engine_LocalLlm_tokenCount(JNIEnv *env, jobject, jlong handle, jbyteArray text) {
+    auto *engine = reinterpret_cast<Engine *>(handle);
+    if (!engine) { fail(env, "LLM is closed"); return 0; }
+    const int size = env->GetArrayLength(text);
+    std::string input(size, '\0');
+    env->GetByteArrayRegion(text, 0, size, reinterpret_cast<jbyte *>(input.data()));
+    return -llama_tokenize(engine->model, input.data(), size, nullptr, 0, false, false);
 }
 extern "C" JNIEXPORT void JNICALL
 Java_team_replika_engine_LocalLlm_release(JNIEnv *, jobject, jlong handle) {

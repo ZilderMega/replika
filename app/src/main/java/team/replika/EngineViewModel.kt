@@ -1,98 +1,108 @@
 package team.replika
 
 import android.app.Application
+import android.content.Intent
 import android.net.Uri
+import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import team.replika.engine.*
 import java.io.File
 
-import org.json.JSONObject
-
 data class EngineUiState(val busy: Boolean = false, val stage: String = "", val progress: Float = 0f,
-    val error: String? = null, val result: EngineResult? = null, val modelsReady: Boolean = false)
+    val error: String? = null, val result: EngineResult? = null, val modelsReady: Boolean = false,
+    val sessionId: String? = null, val preview: EngineResult? = null, val resumable: Boolean = false,
+    val useLlm: Boolean = false, val elapsedMs: Long = 0, val stageElapsedMs: Long = 0,
+    val unitElapsedMs: Long = 0, val remainingMs: Long? = null, val detail: String = "",
+    val stageCompleted: Long = 0, val stageTotal: Long = 0, val unitKey: String = "",
+    val options: ProcessingOptions = ProcessingOptions(), val fragment: Transcript? = null, val fragmentSerial: Long = 0)
+
+private data class RestoredJob(val checkpoint: PipelineCheckpoint, val result: EngineResult?, val preview: EngineResult?, val options: ProcessingOptions)
 
 class EngineViewModel(application: Application) : AndroidViewModel(application) {
-    private val modelsDir = File(application.filesDir, "models")
-    private val mutable = MutableStateFlow(EngineUiState())
+    private val mutable = ProcessingService.mutable
     val state = mutable.asStateFlow()
-    private var job: Job? = null
-    fun clearResult() { if (!mutable.value.busy) mutable.value = mutable.value.copy(result = null, error = null, stage = "") }
-    fun cancel() { job?.cancel(); mutable.value = mutable.value.copy(stage = "Отмена: ожидаем освобождения моделей…") }
-
+    private var preparation: Job? = null
+    private var selection: Job? = null
+    fun clearResult() {
+        selection?.cancel()
+        if (!mutable.value.busy) mutable.update { EngineUiState(modelsReady = it.modelsReady) }
+    }
+    fun cancel() {
+        if (preparation?.isActive == true) preparation?.cancel()
+        else getApplication<Application>().startService(Intent(getApplication(), ProcessingService::class.java).setAction("cancel"))
+    }
     init { prepareModels() }
+
+    fun selectSession(id: String) {
+        if (mutable.value.busy) return
+        selection?.cancel()
+        selection = viewModelScope.launch {
+            val directory = ProcessingService.jobDirectory(getApplication<Application>().filesDir, id)
+            try {
+                val restored = withContext(Dispatchers.IO) {
+                    val checkpoint = PipelineCheckpoint.load(directory)
+                    val complete = File(directory, "result.json")
+                    val preview = File(directory, "preview.json")
+                    val config = File(directory, "options.json")
+                    val options = if (config.isFile) org.json.JSONObject(config.readText()).let {
+                        ProcessingOptions(it.optBoolean("denoise"), it.optBoolean("vad"), it.optInt("threads", 4), it.optString("provider", "cpu"), it.optInt("speakers"))
+                    } else ProcessingOptions()
+                    RestoredJob(checkpoint, if (complete.isFile && checkpoint.finished) ProcessingService.readResult(complete) else null,
+                        if (preview.isFile) ProcessingService.readResult(preview) else null, options)
+                }
+                if (!mutable.value.busy) mutable.update { it.copy(sessionId = id, result = restored.result,
+                    preview = restored.result ?: restored.preview, resumable = File(directory, "source.audio").isFile && !restored.checkpoint.finished,
+                    useLlm = restored.checkpoint.punctuationMode == "llm", elapsedMs = restored.checkpoint.elapsedMs, options = restored.options,
+                    stage = if (restored.result != null) "Готово" else "") }
+            } catch (e: CancellationException) { throw e
+            } catch (e: Exception) { mutable.update { it.copy(error = "Не удалось восстановить задание: ${e.message}") } }
+        }
+    }
 
     fun prepareModels() {
         if (mutable.value.busy) return
-        mutable.value = mutable.value.copy(busy = true, modelsReady = false, stage = "Подготовка приложения", progress = 0f, error = null)
-        job = viewModelScope.launch {
+        mutable.update { it.copy(busy = true, modelsReady = false, stage = "Подготовка приложения", progress = 0f, error = null) }
+        preparation = viewModelScope.launch {
+            val started = SystemClock.elapsedRealtime()
+            val timer = launch {
+                while (isActive) { mutable.update { it.copy(elapsedMs = SystemClock.elapsedRealtime() - started) }; delay(1000) }
+            }
             try {
-                BundledModels(getApplication()).prepare {
-                    mutable.value = mutable.value.copy(progress = it)
-                }
-                mutable.value = mutable.value.copy(modelsReady = true, stage = "Готово к работе")
-            } catch (e: CancellationException) {
-                mutable.value = mutable.value.copy(stage = "Подготовка отменена")
-            } catch (e: Exception) {
-                mutable.value = mutable.value.copy(error = "Не удалось подготовить приложение. Освободите место и повторите: ${e.message}")
-            } finally { mutable.value = mutable.value.copy(busy = false) }
+                BundledModels(getApplication()).prepare { fraction -> mutable.update { it.copy(progress = fraction) } }
+                mutable.update { it.copy(modelsReady = true, stage = "Готово к работе") }
+            } catch (e: CancellationException) { mutable.update { it.copy(stage = "Подготовка отменена") }
+            } catch (e: Exception) { mutable.update { it.copy(error = "Не удалось подготовить приложение: ${e.message}") }
+            } finally { timer.cancel(); mutable.update { it.copy(busy = false) } }
         }
     }
 
-    fun transcribe(uri: Uri) {
-        if (mutable.value.busy) return
-        mutable.value = mutable.value.copy(busy = true, stage = "Чтение аудиофайла", progress = 0f, error = null, result = null)
-        job = viewModelScope.launch {
+    fun transcribe(uri: Uri, sessionId: String, useLlm: Boolean = false, options: ProcessingOptions = ProcessingOptions(), forceDiarization: Boolean = false) {
+        if (mutable.value.busy || !mutable.value.modelsReady) return
+        selection?.cancel()
+        val app = getApplication<Application>()
+        mutable.update { it.copy(busy = true, sessionId = sessionId, result = null, error = null, useLlm = useLlm, stage = "Запуск обработки") }
+        try {
+            app.startForegroundService(Intent(app, ProcessingService::class.java).putExtra("uri", uri.toString())
+                .putExtra("session_id", sessionId).putExtra("llm", useLlm).putExtra("denoise", options.denoise)
+                .putExtra("vad", options.filterPauses).putExtra("threads", options.threads).putExtra("provider", options.provider)
+                .putExtra("speakers", options.speakers).putExtra("force_diarization", forceDiarization))
+        } catch (e: Exception) { mutable.update { it.copy(busy = false, error = "Не удалось начать обработку: ${e.message}") } }
+    }
+
+    fun refine(uri: Uri, sessionId: String, line: Utterance, mixed: Boolean, separate: Boolean, denoise: Boolean) {
+        if (mutable.value.busy || !mutable.value.modelsReady) return
+        selection?.cancel()
+        mutable.update { it.copy(busy = true, fragment = null, fragmentSerial = it.fragmentSerial + 1, error = null, stage = "Запуск обработки фрагмента") }
+        try {
             val app = getApplication<Application>()
-            var input: File? = null
-            try {
-                val sourceFile = File.createTempFile("replika-input-", ".audio", app.cacheDir)
-                input = sourceFile
-                withContext(Dispatchers.IO) {
-                    requireNotNull(app.contentResolver.openInputStream(uri)).use { source ->
-                        sourceFile.outputStream().buffered().use { target ->
-                            val buffer = ByteArray(1024 * 1024)
-                            var total = 0L
-                            while (true) {
-                                currentCoroutineContext().ensureActive()
-                                val n = source.read(buffer); if (n < 0) break
-                                total += n; require(total <= 1_000_000_000) { "Аудиофайл больше 1 ГБ" }
-                                target.write(buffer, 0, n)
-                            }
-                        }
-                    }
-                }
-                val result = LocalTranscriptionEngine(ModelFiles(modelsDir), app.cacheDir).process(sourceFile) {
-                    mutable.value = mutable.value.copy(stage = it.stage, progress = it.fraction)
-                }
-                withContext(Dispatchers.IO) {
-                    val record = JSONObject().put("raw", JSONObject(result.raw.toJson()))
-                        .put("formatted", JSONObject(result.formatted.toJson()))
-                        .put("duration_ms", result.durationMs).put("elapsed_ms", result.elapsedMs)
-                        .put("stages_ms", JSONObject(result.stagesMs)).put("rejected_llm_edits", result.rejectedEdits)
-                    val pending = File(app.filesDir, "last-result.tmp")
-                    pending.writeText(record.toString(2))
-                    check(pending.renameTo(File(app.filesDir, "last-result.json")))
-                }
-                mutable.value = mutable.value.copy(result = result, stage = "Готово")
-            } catch (e: CancellationException) { mutable.value = mutable.value.copy(stage = "Обработка отменена")
-            } catch (e: Exception) { mutable.value = mutable.value.copy(error = e.message ?: "Не удалось обработать запись")
-            } catch (e: OutOfMemoryError) { mutable.value = mutable.value.copy(error = "Недостаточно памяти. Выберите запись короче.")
-            } finally { input?.delete(); mutable.value = mutable.value.copy(busy = false) }
-        }
-    }
-
-    fun export(uri: Uri) {
-        val result = mutable.value.result ?: return
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                requireNotNull(getApplication<Application>().contentResolver.openOutputStream(uri, "wt")).bufferedWriter(Charsets.UTF_8).use {
-                    it.write(result.raw.toJson())
-                }
-            } catch (e: Exception) { mutable.value = mutable.value.copy(error = "Не удалось сохранить JSON: ${e.message}") }
-        }
+            app.startForegroundService(Intent(app, ProcessingService::class.java).putExtra("uri", uri.toString())
+                .putExtra("session_id", sessionId).putExtra("fragment", true).putExtra("start_ms", line.startMs)
+                .putExtra("end_ms", line.endMs).putExtra("speaker", line.speakerId).putExtra("mixed", mixed)
+                .putExtra("separate", separate).putExtra("denoise", denoise))
+        } catch (e: Exception) { mutable.update { it.copy(busy = false, error = "Не удалось обработать фрагмент: ${e.message}") } }
     }
 }

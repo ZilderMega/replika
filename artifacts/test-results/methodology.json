@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-07",
+  "platform": "Android emulator x86_64",
+  "audio_ms": 35400,
+  "audio_source": "Five repeats of public Russian 1.wav, stereo MP3 44.1 kHz",
+  "asr_comparison": "Warm-up first window, then three full-file ASR inference runs per configuration; median reported separately from model loading",
+  "pipeline_comparison": "Two actual full-pipeline runs; models prepared before timing; individual stage durations included",
+  "nnapi_note": "Requested provider only; emulator measurements do not prove NPU execution or physical-phone speed",
+  "quality_note": "Same-word checks are regressions, not independent WER/DER measurements",
+  "noise_fixture": "Public Russian 0.wav plus deterministic Gaussian noise at nominal global 10 dB SNR before clipping",
+  "overlap_fixture": "Russian 1.wav plus English Whisper 0.wav, mono 16 kHz, 6 seconds",
+  "score_note": "No official point thresholds or three independent judge references supplied; no official score inferred"
+}

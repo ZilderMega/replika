@@ -6,7 +6,16 @@
     "tokens.txt": "93bbbc0bae6b78c0bbb743d4aa9fded3bb5ff3aac5f0200e3a769a5a05e0fdf6",
     "segmentation.onnx": "d582f4b4c6b48205de7e0643c57df0df5615a3c176189be3fc461e9d18827b5d",
     "embedding.onnx": "357a834f702b80161e5b981182c038e18553c1f2ca752ed6cec2052365d4129b",
-    "llm.gguf": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"
+    "llm.gguf": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+    "punctuation.onnx": "b105da023474d98aa13ba18953ae67b04b17bd0595034bc06030c17536893933",
+    "punctuation-tokenizer.json": "7ca617388c2092a3a84272025c52bbf3c6db0aee225c0351186295c0b5d3ddc6",
+    "punctuation-config.json": "6924a8cf41ec2bd3a3aa73a387ae0ccd0aed253ec7cac4d2f53c7d27440891eb",
+    "denoise.onnx": "e77603ac0c23dac3227dd2d7135b3a585cbee2679048aecfa886657d3ae1b534",
+    "vad.onnx": "6b99cbfd39246b6706f98ec13c7c50c6b299181f2474fa05cbc8046acc274396",
+    "whisper-encoder.onnx": "d24fb083ae3b1041fc24e97971d60e280c9342201fbb67b0ab428a8b4a51a434",
+    "whisper-decoder.onnx": "d2fece8dd42771f1df975c6c0445770d0c292bf7547c2cae04a6c0cc57540925",
+    "whisper-tokens.txt": "b34b360dbb493e781e479794586d661700670d65564001f23024971d1f2fa126",
+    "separation.onnx": "22185d8e13bf5251c0eeab09e52099ac76c063cd9a5e5df1f5c242f535f6f151"
   },
   "schema": 1,
   "profile": "zipformer-ru-small-2024-09-18_pyannote3_campplus_qwen2.5-0.5b"

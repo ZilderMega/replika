@@ -1,0 +1,51 @@
+[
+  {
+    "suite": "team.replika.engine.AlignmentTest",
+    "tests": 6,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 0.106
+  },
+  {
+    "suite": "team.replika.engine.LongProcessingTest",
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 0.196
+  },
+  {
+    "suite": "team.replika.engine.VoiceMatcherTest",
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 0.038
+  },
+  {
+    "suite": "team.replika.PlaybackTest",
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 0.035
+  },
+  {
+    "suite": "team.replika.TranscriptExportTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 0.065
+  },
+  {
+    "suite": "team.replika.TranscriptToolsTest",
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 0.052
+  },
+  {
+    "suite": "team.replika.WorkflowTest",
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 0.01
+  }
+]

@@ -13,3 +13,5 @@ local.properties
 app/libs/*.aar
 app/.cxx/
 artifacts/
+__pycache__/
+*.py[cod]
