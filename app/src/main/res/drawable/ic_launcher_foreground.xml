@@ -1,0 +1,9 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Original compact р. monogram. Kept within the adaptive-icon safe area. -->
+    <path android:fillColor="#F5F0E8" android:fillType="evenOdd"
+        android:pathData="M33,36L44,36L44,40C47,36 50,35 54,35C63,35 68,42 68,51C68,61 62,67 54,67C50,67 47,66 44,63L44,74L49,75L49,78L33,78L33,75L37,74L37,40L33,39ZM44,48L44,56C44,61 48,64 52,64C58,64 60,59 60,51C60,43 57,39 52,39C48,39 44,43 44,48Z" />
+    <path android:fillColor="#F5F0E8"
+        android:pathData="M74,60A4,4 0,1 1,74 68A4,4 0,1 1,74 60Z" />
+</vector>
