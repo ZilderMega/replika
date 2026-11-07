@@ -32,15 +32,18 @@ class ModelFiles(val directory: File) {
                 }
             }
             val actual = digest.digest().joinToString("") { "%02x".format(it) }
-            require(actual.equals(hashes.getString(name), true)) { "Повреждена модель $name. Импортируйте комплект заново." }
+            val expected = EXTRA_HASHES[name] ?: hashes.getString(name)
+            require(actual.equals(expected, true)) { "Повреждена модель $name. Импортируйте комплект заново." }
         }
         verified[key] = snapshot
     }
     companion object {
         private data class VerifiedSet(val manifest: String, val stamps: List<Triple<String, Long, Long>>)
         private val verified = ConcurrentHashMap<String, VerifiedSet>()
+        // Separate pinned extras preserve the base manifest and existing ASR checkpoint signatures.
+        val EXTRA_HASHES = mapOf("speaker-refinement.onnx" to "5ef208a9da1453335308a6b6f4e6dfbd7e183a38b604de0a57664f45d257fe94")
         val REQUIRED = listOf("encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt", "segmentation.onnx", "embedding.onnx", "llm.gguf",
             "punctuation.onnx", "punctuation-tokenizer.json", "punctuation-config.json", "denoise.onnx", "vad.onnx",
-            "whisper-encoder.onnx", "whisper-decoder.onnx", "whisper-tokens.txt", "separation.onnx", "manifest.json")
+            "whisper-encoder.onnx", "whisper-decoder.onnx", "whisper-tokens.txt", "separation.onnx", "manifest.json") + EXTRA_HASHES.keys
     }
 }

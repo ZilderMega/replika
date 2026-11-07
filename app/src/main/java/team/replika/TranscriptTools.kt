@@ -1,6 +1,11 @@
 package team.replika
 
 object TranscriptTools {
+    fun applySpeakerSuggestions(original: Transcript, suggestions: List<team.replika.engine.SpeakerSuggestion>): Transcript {
+        require(suggestions.all { suggestion -> original.utterances.any { it == suggestion.original } }) { "Стенограмма изменилась. Повторите поиск похожих голосов." }
+        val replacements = suggestions.associate { it.original to it.speakerId }
+        return Transcript(original.utterances.map { line -> replacements[line]?.let { line.copy(speakerId = it) } ?: line })
+    }
     fun split(line: Utterance, boundaryMs: Long, characterOffset: Int): List<Utterance> {
         require(boundaryMs > line.startMs && boundaryMs < line.endMs) { "Время смены голоса должно быть внутри реплики" }
         require(characterOffset in 1 until line.text.length) { "Поставьте курсор между двумя частями текста" }

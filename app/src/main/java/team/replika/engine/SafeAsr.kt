@@ -16,7 +16,7 @@ object SafeAsr {
             val stream = recognizer.createStream()
             try {
                 // Very short tails can violate the encoder's minimum feature length.
-                stream.acceptWaveform(samples.copyOf(maxOf(samples.size, 16000)), 16000)
+                stream.acceptWaveform(if (samples.size < 16000) samples.copyOf(16000) else samples, 16000)
                 recognizer.decode(stream)
                 currentCoroutineContext().ensureActive()
                 val result = recognizer.getResult(stream)

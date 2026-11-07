@@ -1,0 +1,66 @@
+{
+  "device": "sdk_gphone64_x86_64",
+  "fixture": "ami-development.wav",
+  "refinement_ms": 4326,
+  "rematch_ms": 443,
+  "initial_diarization_metrics": {
+    "native_model_load_ms": 581,
+    "native_ms": 2338,
+    "native_wall_ms": 2338,
+    "native_calls": 1,
+    "profile_embedding_ms": 710,
+    "matching_ms": 6,
+    "reconciliation_ms": 7,
+    "resolved_provisional_voices": 0
+  },
+  "rematch_diarization_metrics": {
+    "native_model_load_ms": 0,
+    "cached_blocks": 1,
+    "matching_ms": 3,
+    "reconciliation_ms": 7,
+    "resolved_provisional_voices": 0
+  },
+  "source_words_retained": true,
+  "native_calls_on_rematch": 0,
+  "note": "Turn refinement uses independent AMI human word times\/text, not RU ASR on English; rematch checks preservation of actual RU ASR separately",
+  "candidate": {
+    "transcript": [
+      {
+        "speaker_id": "speaker_review_1",
+        "start_ms": 1420,
+        "end_ms": 1990,
+        "text": "Okay"
+      },
+      {
+        "speaker_id": "speaker_review_1",
+        "start_ms": 4560,
+        "end_ms": 4960,
+        "text": "Right"
+      },
+      {
+        "speaker_id": "speaker_review_1",
+        "start_ms": 6980,
+        "end_ms": 25910,
+        "text": "Um well this is the kick-off meeting for our our project Um and um this is just what we're gonna be doing over the next twenty five minutes Mm-hmm Um so first of all just to kind of make sure that we all know each other I'm Laura and I'm the project manager Do"
+      },
+      {
+        "speaker_id": "speaker_unknown",
+        "start_ms": 25890,
+        "end_ms": 26240,
+        "text": "Great"
+      },
+      {
+        "speaker_id": "speaker_review_1",
+        "start_ms": 25910,
+        "end_ms": 28290,
+        "text": "you want to introduce yourself again"
+      },
+      {
+        "speaker_id": "speaker_review_3",
+        "start_ms": 28440,
+        "end_ms": 29850,
+        "text": "Hi I'm David and"
+      }
+    ]
+  }
+}

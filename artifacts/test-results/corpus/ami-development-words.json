@@ -1,0 +1,412 @@
+{
+  "fixture": "ami-development.wav",
+  "source": "https://groups.inf.ed.ac.uk/ami/AMICorpusAnnotations/ami_public_manual_1.6.2.zip",
+  "archive_sha256": "b56e5babb2496b8795deeeda7e71178d7fbc9963f94276cf2a3f4b56ebbc9f9d",
+  "original_start_ms": 49000,
+  "license": "CC BY 4.0; AMI Consortium",
+  "annotation": "Human word times and transcription, punctuation XML nodes excluded. Simultaneous words retained; not ASR output.",
+  "words": [
+    {
+      "text": "Okay",
+      "start_ms": 1420,
+      "end_ms": 1990,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Right",
+      "start_ms": 4560,
+      "end_ms": 4960,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Um",
+      "start_ms": 6980,
+      "end_ms": 7530,
+      "speaker_id": "B"
+    },
+    {
+      "text": "well",
+      "start_ms": 7530,
+      "end_ms": 7690,
+      "speaker_id": "B"
+    },
+    {
+      "text": "this",
+      "start_ms": 7690,
+      "end_ms": 7840,
+      "speaker_id": "B"
+    },
+    {
+      "text": "is",
+      "start_ms": 7840,
+      "end_ms": 7960,
+      "speaker_id": "B"
+    },
+    {
+      "text": "the",
+      "start_ms": 7960,
+      "end_ms": 8050,
+      "speaker_id": "B"
+    },
+    {
+      "text": "kick-off",
+      "start_ms": 8050,
+      "end_ms": 8490,
+      "speaker_id": "B"
+    },
+    {
+      "text": "meeting",
+      "start_ms": 8490,
+      "end_ms": 8850,
+      "speaker_id": "B"
+    },
+    {
+      "text": "for",
+      "start_ms": 8850,
+      "end_ms": 9010,
+      "speaker_id": "B"
+    },
+    {
+      "text": "our",
+      "start_ms": 9010,
+      "end_ms": 9540,
+      "speaker_id": "B"
+    },
+    {
+      "text": "our",
+      "start_ms": 9540,
+      "end_ms": 9690,
+      "speaker_id": "B"
+    },
+    {
+      "text": "project",
+      "start_ms": 9690,
+      "end_ms": 11350,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Um",
+      "start_ms": 11350,
+      "end_ms": 13190,
+      "speaker_id": "B"
+    },
+    {
+      "text": "and",
+      "start_ms": 13190,
+      "end_ms": 13720,
+      "speaker_id": "B"
+    },
+    {
+      "text": "um",
+      "start_ms": 13720,
+      "end_ms": 15160,
+      "speaker_id": "B"
+    },
+    {
+      "text": "this",
+      "start_ms": 15160,
+      "end_ms": 15350,
+      "speaker_id": "B"
+    },
+    {
+      "text": "is",
+      "start_ms": 15350,
+      "end_ms": 15460,
+      "speaker_id": "B"
+    },
+    {
+      "text": "just",
+      "start_ms": 15460,
+      "end_ms": 15800,
+      "speaker_id": "B"
+    },
+    {
+      "text": "what",
+      "start_ms": 15800,
+      "end_ms": 15960,
+      "speaker_id": "B"
+    },
+    {
+      "text": "we're",
+      "start_ms": 15960,
+      "end_ms": 16060,
+      "speaker_id": "B"
+    },
+    {
+      "text": "gonna",
+      "start_ms": 16060,
+      "end_ms": 16210,
+      "speaker_id": "B"
+    },
+    {
+      "text": "be",
+      "start_ms": 16210,
+      "end_ms": 16300,
+      "speaker_id": "B"
+    },
+    {
+      "text": "doing",
+      "start_ms": 16300,
+      "end_ms": 16560,
+      "speaker_id": "B"
+    },
+    {
+      "text": "over",
+      "start_ms": 16560,
+      "end_ms": 16650,
+      "speaker_id": "B"
+    },
+    {
+      "text": "the",
+      "start_ms": 16650,
+      "end_ms": 16730,
+      "speaker_id": "B"
+    },
+    {
+      "text": "next",
+      "start_ms": 16730,
+      "end_ms": 16970,
+      "speaker_id": "B"
+    },
+    {
+      "text": "twenty",
+      "start_ms": 16970,
+      "end_ms": 17190,
+      "speaker_id": "B"
+    },
+    {
+      "text": "five",
+      "start_ms": 17190,
+      "end_ms": 17420,
+      "speaker_id": "B"
+    },
+    {
+      "text": "minutes",
+      "start_ms": 17420,
+      "end_ms": 18550,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Mm-hmm",
+      "start_ms": 18210,
+      "end_ms": 18450,
+      "speaker_id": "D"
+    },
+    {
+      "text": "Um",
+      "start_ms": 18550,
+      "end_ms": 19560,
+      "speaker_id": "B"
+    },
+    {
+      "text": "so",
+      "start_ms": 19560,
+      "end_ms": 20150,
+      "speaker_id": "B"
+    },
+    {
+      "text": "first",
+      "start_ms": 20150,
+      "end_ms": 20510,
+      "speaker_id": "B"
+    },
+    {
+      "text": "of",
+      "start_ms": 20510,
+      "end_ms": 20580,
+      "speaker_id": "B"
+    },
+    {
+      "text": "all",
+      "start_ms": 20580,
+      "end_ms": 20850,
+      "speaker_id": "B"
+    },
+    {
+      "text": "just",
+      "start_ms": 20850,
+      "end_ms": 21020,
+      "speaker_id": "B"
+    },
+    {
+      "text": "to",
+      "start_ms": 21020,
+      "end_ms": 21110,
+      "speaker_id": "B"
+    },
+    {
+      "text": "kind",
+      "start_ms": 21110,
+      "end_ms": 21360,
+      "speaker_id": "B"
+    },
+    {
+      "text": "of",
+      "start_ms": 21360,
+      "end_ms": 22040,
+      "speaker_id": "B"
+    },
+    {
+      "text": "make",
+      "start_ms": 22040,
+      "end_ms": 22240,
+      "speaker_id": "B"
+    },
+    {
+      "text": "sure",
+      "start_ms": 22240,
+      "end_ms": 22480,
+      "speaker_id": "B"
+    },
+    {
+      "text": "that",
+      "start_ms": 22480,
+      "end_ms": 22590,
+      "speaker_id": "B"
+    },
+    {
+      "text": "we",
+      "start_ms": 22590,
+      "end_ms": 22680,
+      "speaker_id": "B"
+    },
+    {
+      "text": "all",
+      "start_ms": 22680,
+      "end_ms": 22860,
+      "speaker_id": "B"
+    },
+    {
+      "text": "know",
+      "start_ms": 22860,
+      "end_ms": 22970,
+      "speaker_id": "B"
+    },
+    {
+      "text": "each",
+      "start_ms": 22970,
+      "end_ms": 23210,
+      "speaker_id": "B"
+    },
+    {
+      "text": "other",
+      "start_ms": 23210,
+      "end_ms": 23790,
+      "speaker_id": "B"
+    },
+    {
+      "text": "I'm",
+      "start_ms": 23790,
+      "end_ms": 24030,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Laura",
+      "start_ms": 24030,
+      "end_ms": 24280,
+      "speaker_id": "B"
+    },
+    {
+      "text": "and",
+      "start_ms": 24280,
+      "end_ms": 24500,
+      "speaker_id": "B"
+    },
+    {
+      "text": "I'm",
+      "start_ms": 24500,
+      "end_ms": 24610,
+      "speaker_id": "B"
+    },
+    {
+      "text": "the",
+      "start_ms": 24610,
+      "end_ms": 24690,
+      "speaker_id": "B"
+    },
+    {
+      "text": "project",
+      "start_ms": 24690,
+      "end_ms": 25080,
+      "speaker_id": "B"
+    },
+    {
+      "text": "manager",
+      "start_ms": 25080,
+      "end_ms": 25420,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Do",
+      "start_ms": 25420,
+      "end_ms": 25910,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Great",
+      "start_ms": 25890,
+      "end_ms": 26240,
+      "speaker_id": "D"
+    },
+    {
+      "text": "you",
+      "start_ms": 25910,
+      "end_ms": 27100,
+      "speaker_id": "B"
+    },
+    {
+      "text": "want",
+      "start_ms": 27100,
+      "end_ms": 27230,
+      "speaker_id": "B"
+    },
+    {
+      "text": "to",
+      "start_ms": 27230,
+      "end_ms": 27350,
+      "speaker_id": "B"
+    },
+    {
+      "text": "introduce",
+      "start_ms": 27350,
+      "end_ms": 27760,
+      "speaker_id": "B"
+    },
+    {
+      "text": "yourself",
+      "start_ms": 27760,
+      "end_ms": 28080,
+      "speaker_id": "B"
+    },
+    {
+      "text": "again",
+      "start_ms": 28080,
+      "end_ms": 28290,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Hi",
+      "start_ms": 28440,
+      "end_ms": 28740,
+      "speaker_id": "A"
+    },
+    {
+      "text": "I'm",
+      "start_ms": 28740,
+      "end_ms": 29160,
+      "speaker_id": "A"
+    },
+    {
+      "text": "David",
+      "start_ms": 29160,
+      "end_ms": 29600,
+      "speaker_id": "A"
+    },
+    {
+      "text": "and",
+      "start_ms": 29600,
+      "end_ms": 29850,
+      "speaker_id": "A"
+    }
+  ]
+}

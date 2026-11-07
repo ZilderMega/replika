@@ -37,6 +37,7 @@ if ($SkipModels) { return }
 Download 'https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-small-zipformer-ru-2024-09-18.tar.bz2' '.deps/asr.tar.bz2' 'f766cea7df7e7204a5eac9edfba2d05e7546523a88e803f4a110b1865358d51a'
 Download 'https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2' '.deps/seg.tar.bz2' '24615ee884c897d9d2ba09bb4d30da6bb1b15e685065962db5b02e76e4996488'
 Download 'https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx' '.models/embedding.onnx' '357a834f702b80161e5b981182c038e18553c1f2ca752ed6cec2052365d4129b'
+Download 'https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/wespeaker_en_voxceleb_resnet34.onnx' '.models/speaker-refinement.onnx' '5ef208a9da1453335308a6b6f4e6dfbd7e183a38b604de0a57664f45d257fe94'
 Download 'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf' '.models/llm.gguf' '74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db'
 $punctRevision = 'c4a35be7e4a413cdfb08427db75b621b571569c9'
 Download "https://huggingface.co/ekhodzitsky/rupunct-small-onnx/resolve/$punctRevision/rupunct_small_int8.onnx" '.models/punctuation.onnx' 'b105da023474d98aa13ba18953ae67b04b17bd0595034bc06030c17536893933'

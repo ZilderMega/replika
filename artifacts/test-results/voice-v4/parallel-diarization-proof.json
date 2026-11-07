@@ -1,0 +1,19 @@
+{
+  "device": "sdk_gphone64_x86_64",
+  "fixture": "two-speakers.wav",
+  "workers": 2,
+  "threads_per_worker": 2,
+  "checkpoint_committed_in_order": true,
+  "resumed_at_ms": 6000,
+  "same_spans_as_one_worker": true,
+  "diarization_metrics": {
+    "native_ms": 203,
+    "native_wall_ms": 113,
+    "native_calls": 4,
+    "parallel_batches": 2,
+    "profile_embedding_ms": 1248,
+    "matching_ms": 0,
+    "reconciliation_ms": 1,
+    "resolved_provisional_voices": 0
+  }
+}

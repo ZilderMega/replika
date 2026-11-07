@@ -1,0 +1,8 @@
+{
+  "device": "sdk_gphone64_x86_64",
+  "fixture": "window-test.mp3",
+  "proposals": 2,
+  "selected_proposals_applied": 1,
+  "original_unchanged": true,
+  "words_times_preserved": true
+}

@@ -18,7 +18,8 @@ data class EngineUiState(val busy: Boolean = false, val stage: String = "", val 
     val useLlm: Boolean = false, val elapsedMs: Long = 0, val stageElapsedMs: Long = 0,
     val unitElapsedMs: Long = 0, val remainingMs: Long? = null, val detail: String = "",
     val stageCompleted: Long = 0, val stageTotal: Long = 0, val unitKey: String = "",
-    val options: ProcessingOptions = ProcessingOptions(), val fragment: Transcript? = null, val fragmentSerial: Long = 0)
+    val options: ProcessingOptions = ProcessingOptions(), val fragment: Transcript? = null, val fragmentSerial: Long = 0,
+    val speakerSuggestions: List<SpeakerSuggestion> = emptyList(), val speakerSuggestionSerial: Long = 0)
 
 private data class RestoredJob(val checkpoint: PipelineCheckpoint, val result: EngineResult?, val preview: EngineResult?, val options: ProcessingOptions)
 
@@ -49,7 +50,7 @@ class EngineViewModel(application: Application) : AndroidViewModel(application) 
                     val preview = File(directory, "preview.json")
                     val config = File(directory, "options.json")
                     val options = if (config.isFile) org.json.JSONObject(config.readText()).let {
-                        ProcessingOptions(it.optBoolean("denoise"), it.optBoolean("vad"), it.optInt("threads", 4), it.optString("provider", "cpu"), it.optInt("speakers"))
+                        ProcessingOptions(it.optBoolean("denoise"), it.optBoolean("vad"), it.optInt("threads", 4), it.optString("provider", "cpu"), it.optInt("speakers"), it.optInt("diarization_workers", 1))
                     } else ProcessingOptions()
                     RestoredJob(checkpoint, if (complete.isFile && checkpoint.finished) ProcessingService.readResult(complete) else null,
                         if (preview.isFile) ProcessingService.readResult(preview) else null, options)
@@ -89,11 +90,11 @@ class EngineViewModel(application: Application) : AndroidViewModel(application) 
             app.startForegroundService(Intent(app, ProcessingService::class.java).putExtra("uri", uri.toString())
                 .putExtra("session_id", sessionId).putExtra("llm", useLlm).putExtra("denoise", options.denoise)
                 .putExtra("vad", options.filterPauses).putExtra("threads", options.threads).putExtra("provider", options.provider)
-                .putExtra("speakers", options.speakers).putExtra("force_diarization", forceDiarization))
+                .putExtra("speakers", options.speakers).putExtra("diarization_workers", options.diarizationWorkers).putExtra("force_diarization", forceDiarization))
         } catch (e: Exception) { mutable.update { it.copy(busy = false, error = "Не удалось начать обработку: ${e.message}") } }
     }
 
-    fun refine(uri: Uri, sessionId: String, line: Utterance, mixed: Boolean, separate: Boolean, denoise: Boolean) {
+    fun refine(uri: Uri, sessionId: String, line: Utterance, mixed: Boolean, separate: Boolean, denoise: Boolean, speakerTurns: Boolean = false) {
         if (mutable.value.busy || !mutable.value.modelsReady) return
         selection?.cancel()
         mutable.update { it.copy(busy = true, fragment = null, fragmentSerial = it.fragmentSerial + 1, error = null, stage = "Запуск обработки фрагмента") }
@@ -102,7 +103,28 @@ class EngineViewModel(application: Application) : AndroidViewModel(application) 
             app.startForegroundService(Intent(app, ProcessingService::class.java).putExtra("uri", uri.toString())
                 .putExtra("session_id", sessionId).putExtra("fragment", true).putExtra("start_ms", line.startMs)
                 .putExtra("end_ms", line.endMs).putExtra("speaker", line.speakerId).putExtra("mixed", mixed)
-                .putExtra("separate", separate).putExtra("denoise", denoise))
+                .putExtra("separate", separate).putExtra("denoise", denoise).putExtra("speaker_turns", speakerTurns).putExtra("original_text", line.text))
         } catch (e: Exception) { mutable.update { it.copy(busy = false, error = "Не удалось обработать фрагмент: ${e.message}") } }
+    }
+
+    fun confirmVoice(uri: Uri, sessionId: String, line: Utterance, transcript: Transcript): Long? {
+        if (mutable.value.busy || !mutable.value.modelsReady) return null
+        selection?.cancel()
+        val serial = mutable.value.speakerSuggestionSerial+1
+        mutable.update { it.copy(busy = true, speakerSuggestionSerial = serial, speakerSuggestions = emptyList(), error = null, stage = "Подготовка подтверждённого голоса") }
+        viewModelScope.launch {
+            try {
+                val app = getApplication<Application>()
+                withContext(Dispatchers.IO) {
+                    val directory = ProcessingService.jobDirectory(app.filesDir, sessionId)
+                    directory.mkdirs()
+                    PipelineCheckpoint.writeAtomically(File(directory, "anchor-transcript.json"), transcript.toJson())
+                }
+                app.startForegroundService(Intent(app, ProcessingService::class.java).putExtra("uri", uri.toString())
+                    .putExtra("session_id", sessionId).putExtra("fragment", true).putExtra("voice_anchor", true)
+                    .putExtra("start_ms", line.startMs).putExtra("end_ms", line.endMs).putExtra("speaker", line.speakerId))
+            } catch (e: Exception) { mutable.update { it.copy(busy = false, error = "Не удалось подтвердить голос: ${e.message}") } }
+        }
+        return serial
     }
 }

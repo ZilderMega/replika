@@ -1,0 +1,366 @@
+{
+  "device": "sdk_gphone64_x86_64",
+  "runs": [
+    {
+      "fixture": "ami-development.wav",
+      "block_seconds": 120,
+      "elapsed_ms": 3642,
+      "metrics": {
+        "native_ms": 2444,
+        "native_wall_ms": 2444,
+        "native_calls": 1,
+        "profile_embedding_ms": 622,
+        "matching_ms": 6,
+        "reconciliation_ms": 9,
+        "resolved_provisional_voices": 0
+      },
+      "spans": [
+        [
+          1414,
+          2022,
+          -2
+        ],
+        [
+          4553,
+          5093,
+          -2
+        ],
+        [
+          6966,
+          9025,
+          -2
+        ],
+        [
+          22964,
+          28380,
+          -2
+        ],
+        [
+          9025,
+          22964,
+          0
+        ],
+        [
+          25917,
+          26153,
+          -3
+        ],
+        [
+          28380,
+          28971,
+          -3
+        ],
+        [
+          28971,
+          29967,
+          -4
+        ]
+      ]
+    },
+    {
+      "fixture": "ami-development.wav",
+      "block_seconds": 8,
+      "elapsed_ms": 1627,
+      "metrics": {
+        "native_ms": 143,
+        "native_wall_ms": 143,
+        "native_calls": 4,
+        "profile_embedding_ms": 861,
+        "matching_ms": 13,
+        "reconciliation_ms": 2,
+        "resolved_provisional_voices": 0
+      },
+      "spans": [
+        [
+          1414,
+          2022,
+          -2
+        ],
+        [
+          4553,
+          5363,
+          -2
+        ],
+        [
+          6932,
+          8000,
+          -2
+        ],
+        [
+          8000,
+          16000,
+          0
+        ],
+        [
+          16000,
+          24000,
+          0
+        ],
+        [
+          24000,
+          28346,
+          0
+        ],
+        [
+          25916,
+          26135,
+          -3
+        ],
+        [
+          28397,
+          30000,
+          1
+        ]
+      ]
+    },
+    {
+      "fixture": "ami-development.wav",
+      "block_seconds": 6,
+      "elapsed_ms": 1562,
+      "metrics": {
+        "native_ms": 201,
+        "native_wall_ms": 201,
+        "native_calls": 5,
+        "profile_embedding_ms": 801,
+        "matching_ms": 1,
+        "reconciliation_ms": 3,
+        "resolved_provisional_voices": 0
+      },
+      "spans": [
+        [
+          1448,
+          2022,
+          -2
+        ],
+        [
+          4570,
+          5042,
+          -2
+        ],
+        [
+          6971,
+          11915,
+          0
+        ],
+        [
+          12000,
+          12009,
+          -3
+        ],
+        [
+          13190,
+          18000,
+          -4
+        ],
+        [
+          18000,
+          24000,
+          0
+        ],
+        [
+          24000,
+          28346,
+          0
+        ],
+        [
+          25916,
+          26135,
+          -5
+        ],
+        [
+          28397,
+          30000,
+          1
+        ]
+      ]
+    },
+    {
+      "fixture": "ami-holdout.wav",
+      "block_seconds": 120,
+      "elapsed_ms": 3924,
+      "metrics": {
+        "native_ms": 2465,
+        "native_wall_ms": 2465,
+        "native_calls": 1,
+        "profile_embedding_ms": 759,
+        "matching_ms": 1,
+        "reconciliation_ms": 1,
+        "resolved_provisional_voices": 0
+      },
+      "spans": [
+        [
+          30,
+          1836,
+          0
+        ],
+        [
+          1819,
+          2190,
+          -2
+        ],
+        [
+          3068,
+          5515,
+          1
+        ],
+        [
+          7000,
+          9599,
+          1
+        ],
+        [
+          20027,
+          22660,
+          1
+        ],
+        [
+          25900,
+          27165,
+          1
+        ],
+        [
+          29680,
+          30962,
+          1
+        ],
+        [
+          10307,
+          20027,
+          -3
+        ]
+      ]
+    },
+    {
+      "fixture": "ami-holdout.wav",
+      "block_seconds": 8,
+      "elapsed_ms": 1451,
+      "metrics": {
+        "native_ms": 160,
+        "native_wall_ms": 160,
+        "native_calls": 4,
+        "profile_embedding_ms": 759,
+        "matching_ms": 0,
+        "reconciliation_ms": 2,
+        "resolved_provisional_voices": 0
+      },
+      "spans": [
+        [
+          30,
+          1836,
+          0
+        ],
+        [
+          1819,
+          2207,
+          -2
+        ],
+        [
+          7101,
+          7270,
+          -2
+        ],
+        [
+          3051,
+          5565,
+          -3
+        ],
+        [
+          5903,
+          8000,
+          -3
+        ],
+        [
+          8000,
+          9595,
+          1
+        ],
+        [
+          10321,
+          16000,
+          -4
+        ],
+        [
+          16000,
+          22675,
+          1
+        ],
+        [
+          25916,
+          27215,
+          2
+        ],
+        [
+          29679,
+          31000,
+          2
+        ]
+      ]
+    },
+    {
+      "fixture": "ami-holdout.wav",
+      "block_seconds": 6,
+      "elapsed_ms": 1901,
+      "metrics": {
+        "native_ms": 329,
+        "native_wall_ms": 329,
+        "native_calls": 6,
+        "profile_embedding_ms": 978,
+        "matching_ms": 7,
+        "reconciliation_ms": 3,
+        "resolved_provisional_voices": 0
+      },
+      "spans": [
+        [
+          30,
+          1802,
+          0
+        ],
+        [
+          1802,
+          2241,
+          -2
+        ],
+        [
+          3068,
+          5464,
+          1
+        ],
+        [
+          6971,
+          9620,
+          1
+        ],
+        [
+          10312,
+          12000,
+          -3
+        ],
+        [
+          12000,
+          18000,
+          1
+        ],
+        [
+          18000,
+          22616,
+          1
+        ],
+        [
+          25916,
+          27215,
+          2
+        ],
+        [
+          29679,
+          30000,
+          2
+        ],
+        [
+          30000,
+          31000,
+          2
+        ]
+      ]
+    }
+  ]
+}

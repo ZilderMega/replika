@@ -28,11 +28,22 @@ class PipelineCheckpoint(val directory: File) {
     val spans = mutableListOf<SpeakerSpan>()
     val prototypes = mutableListOf<FloatArray>()
     val voiceProfiles = mutableListOf<VoiceProfile>()
+    val voiceBlocks = mutableListOf<VoiceBlock>()
+    val diarizationMetrics = linkedMapOf<String, Long>()
+    val hasCompleteVoiceEvidence: Boolean get() {
+        var end = 0L
+        for (block in voiceBlocks.sortedBy { it.startSample }) {
+            if (block.startSample != end || block.endSample <= end) return false
+            end = block.endSample
+        }
+        return samples > 0 && end == samples
+    }
     var voiceMatcherVersion = 0
     var expectedSpeakers = 0
 
     fun resetSpeakers(expected: Int) {
         spans.clear(); prototypes.clear(); voiceProfiles.clear(); diarizedSamples = 0
+        diarizationMetrics.clear()
         edits.clear(); rejected = 0; punctuated = false; finished = false
         voiceMatcherVersion = VoiceMatcher.VERSION; expectedSpeakers = expected
     }
@@ -56,6 +67,16 @@ class PipelineCheckpoint(val directory: File) {
             .put("spans", JSONArray().apply { spans.forEach { put(JSONArray(listOf(it.startMs, it.endMs, it.id))) } })
             .put("prototypes", JSONArray().apply { prototypes.forEach { put(JSONArray(it.toList())) } })
             .put("voice_matcher_version", voiceMatcherVersion).put("expected_speakers", expectedSpeakers)
+            .put("diarization_metrics", JSONObject(diarizationMetrics))
+            .put("voice_blocks", JSONArray().apply { voiceBlocks.forEach { block ->
+                put(JSONObject().put("start", block.startSample).put("end", block.endSample)
+                    .put("assignments", JSONObject(block.assignments.mapKeys { it.key.toString() }))
+                    .put("observations", JSONArray().apply { block.observations.forEach { observation ->
+                        put(JSONObject().put("id", observation.localId).put("support_ms", observation.supportMs)
+                            .put("intervals", JSONArray().apply { observation.intervals.forEach { put(JSONArray(listOf(it.first, it.last))) } })
+                            .put("embeddings", JSONArray().apply { observation.embeddings.forEach { put(JSONArray(it.toList())) } }))
+                    } }))
+            } })
             .put("voice_profiles", JSONArray().apply { voiceProfiles.forEach { profile ->
                 put(JSONObject().put("centroid", JSONArray(profile.centroid.toList())).put("support_ms", profile.supportMs)
                     .put("examples", JSONArray().apply { profile.examples.forEach { put(JSONArray(it.toList())) } }))
@@ -95,6 +116,21 @@ class PipelineCheckpoint(val directory: File) {
             state.punctuationMode = json.optString("punctuation_mode")
             state.voiceMatcherVersion = json.optInt("voice_matcher_version")
             state.expectedSpeakers = json.optInt("expected_speakers")
+            json.optJSONObject("diarization_metrics")?.let { metrics -> metrics.keys().forEach { state.diarizationMetrics[it] = metrics.getLong(it) } }
+            json.optJSONArray("voice_blocks")?.let { blocks -> repeat(blocks.length()) { index ->
+                val block = blocks.getJSONObject(index)
+                val observations = block.getJSONArray("observations")
+                val rows = List(observations.length()) { i ->
+                    val row = observations.getJSONObject(i)
+                    val intervals = row.getJSONArray("intervals")
+                    val embeddings = row.getJSONArray("embeddings")
+                    VoiceObservation(row.getInt("id"), List(intervals.length()) { j -> intervals.getJSONArray(j).let { it.getLong(0)..it.getLong(1) } },
+                        List(embeddings.length()) { j -> embeddings.getJSONArray(j).let { vector -> FloatArray(vector.length()) { k -> vector.getDouble(k).toFloat() } } }, row.getLong("support_ms"))
+                }
+                val assignments = linkedMapOf<Int, Int>()
+                block.getJSONObject("assignments").let { map -> map.keys().forEach { assignments[it.toInt()] = map.getInt(it) } }
+                state.voiceBlocks += VoiceBlock(block.getLong("start"), block.getLong("end"), rows, assignments)
+            } }
             json.optJSONArray("voice_profiles")?.let { rows -> repeat(rows.length()) {
                 val row = rows.getJSONObject(it)
                 fun vector(array: JSONArray) = FloatArray(array.length()) { i -> array.getDouble(i).toFloat() }

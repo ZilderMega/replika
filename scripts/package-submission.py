@@ -23,6 +23,8 @@ def main():
     with zipfile.ZipFile(apk) as bundle:
         models = json.loads(bundle.read('assets/models/manifest.json'))['sha256']
         assert all('assets/models/' + name in bundle.namelist() for name in models), 'Submission requires the full model bundle, not a code-only debug update'
+        assert 'assets/models/speaker-refinement.onnx' in bundle.namelist(), 'Missing pinned speaker refinement model'
+        assert hashlib.sha256(bundle.read('assets/models/speaker-refinement.onnx')).hexdigest() == '5ef208a9da1453335308a6b6f4e6dfbd7e183a38b604de0a57664f45d257fe94', 'Speaker refinement checksum mismatch'
     assert not any('.private-validation/' in name for name in selected)
     manifest = {name: sha256(ROOT / name) for name in sorted(selected)}
     output = ROOT / 'artifacts/replika-0.6-submission.zip'

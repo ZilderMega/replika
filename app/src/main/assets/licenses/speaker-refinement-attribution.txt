@@ -1,0 +1,9 @@
+WeSpeaker English VoxCeleb ResNet34 speaker embedding model.
+Authors: WeSpeaker / wenet-e2e contributors. Original weights are distributed unchanged.
+Model: https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/wespeaker_en_voxceleb_resnet34.onnx
+Project: https://github.com/wenet-e2e/wespeaker
+Model license and dataset attribution: https://github.com/wenet-e2e/wespeaker/blob/master/docs/pretrained.md
+VoxCeleb: https://mm.kaist.ac.kr/datasets/voxceleb/
+License: Creative Commons Attribution 4.0 International, see cc-by-4.0.txt.
+SHA-256: 5ef208a9da1453335308a6b6f4e6dfbd7e183a38b604de0a57664f45d257fe94
+Used only for user-selected speaker-turn refinement. Its accuracy on Russian interviews is not established.

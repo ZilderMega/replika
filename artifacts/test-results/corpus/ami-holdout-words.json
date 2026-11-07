@@ -1,0 +1,376 @@
+{
+  "fixture": "ami-holdout.wav",
+  "source": "https://groups.inf.ed.ac.uk/ami/AMICorpusAnnotations/ami_public_manual_1.6.2.zip",
+  "archive_sha256": "b56e5babb2496b8795deeeda7e71178d7fbc9963f94276cf2a3f4b56ebbc9f9d",
+  "original_start_ms": 79000,
+  "license": "CC BY 4.0; AMI Consortium",
+  "annotation": "Human word times and transcription, punctuation XML nodes excluded. Simultaneous words retained; not ASR output.",
+  "words": [
+    {
+      "text": "I'm",
+      "start_ms": 0,
+      "end_ms": 160,
+      "speaker_id": "A"
+    },
+    {
+      "text": "supposed",
+      "start_ms": 160,
+      "end_ms": 530,
+      "speaker_id": "A"
+    },
+    {
+      "text": "to",
+      "start_ms": 530,
+      "end_ms": 600,
+      "speaker_id": "A"
+    },
+    {
+      "text": "be",
+      "start_ms": 600,
+      "end_ms": 740,
+      "speaker_id": "A"
+    },
+    {
+      "text": "an",
+      "start_ms": 740,
+      "end_ms": 830,
+      "speaker_id": "A"
+    },
+    {
+      "text": "industrial",
+      "start_ms": 830,
+      "end_ms": 1210,
+      "speaker_id": "A"
+    },
+    {
+      "text": "designer",
+      "start_ms": 1210,
+      "end_ms": 1870,
+      "speaker_id": "A"
+    },
+    {
+      "text": "Okay",
+      "start_ms": 1810,
+      "end_ms": 2260,
+      "speaker_id": "B"
+    },
+    {
+      "text": "And",
+      "start_ms": 3080,
+      "end_ms": 3250,
+      "speaker_id": "D"
+    },
+    {
+      "text": "I'm",
+      "start_ms": 3250,
+      "end_ms": 3430,
+      "speaker_id": "D"
+    },
+    {
+      "text": "Andrew",
+      "start_ms": 3430,
+      "end_ms": 3870,
+      "speaker_id": "D"
+    },
+    {
+      "text": "and",
+      "start_ms": 3870,
+      "end_ms": 4020,
+      "speaker_id": "D"
+    },
+    {
+      "text": "I'm",
+      "start_ms": 4020,
+      "end_ms": 4350,
+      "speaker_id": "D"
+    },
+    {
+      "text": "uh",
+      "start_ms": 4350,
+      "end_ms": 4770,
+      "speaker_id": "D"
+    },
+    {
+      "text": "our",
+      "start_ms": 4770,
+      "end_ms": 4880,
+      "speaker_id": "D"
+    },
+    {
+      "text": "marketing",
+      "start_ms": 4880,
+      "end_ms": 5460,
+      "speaker_id": "D"
+    },
+    {
+      "text": "Um",
+      "start_ms": 6990,
+      "end_ms": 8170,
+      "speaker_id": "C"
+    },
+    {
+      "text": "expert",
+      "start_ms": 7070,
+      "end_ms": 7500,
+      "speaker_id": "D"
+    },
+    {
+      "text": "I'm",
+      "start_ms": 8170,
+      "end_ms": 8360,
+      "speaker_id": "C"
+    },
+    {
+      "text": "Craig",
+      "start_ms": 8360,
+      "end_ms": 8660,
+      "speaker_id": "C"
+    },
+    {
+      "text": "and",
+      "start_ms": 8660,
+      "end_ms": 8770,
+      "speaker_id": "C"
+    },
+    {
+      "text": "I'm",
+      "start_ms": 8770,
+      "end_ms": 8950,
+      "speaker_id": "C"
+    },
+    {
+      "text": "User",
+      "start_ms": 8950,
+      "end_ms": 9180,
+      "speaker_id": "C"
+    },
+    {
+      "text": "Interface",
+      "start_ms": 9180,
+      "end_ms": 9710,
+      "speaker_id": "C"
+    },
+    {
+      "text": "Great",
+      "start_ms": 10300,
+      "end_ms": 11010,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Okay",
+      "start_ms": 11010,
+      "end_ms": 13480,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Um",
+      "start_ms": 13480,
+      "end_ms": 13790,
+      "speaker_id": "B"
+    },
+    {
+      "text": "so",
+      "start_ms": 13790,
+      "end_ms": 13950,
+      "speaker_id": "B"
+    },
+    {
+      "text": "we're",
+      "start_ms": 13950,
+      "end_ms": 14060,
+      "speaker_id": "B"
+    },
+    {
+      "text": "designing",
+      "start_ms": 14060,
+      "end_ms": 14480,
+      "speaker_id": "B"
+    },
+    {
+      "text": "a",
+      "start_ms": 14480,
+      "end_ms": 14520,
+      "speaker_id": "B"
+    },
+    {
+      "text": "new",
+      "start_ms": 14520,
+      "end_ms": 14760,
+      "speaker_id": "B"
+    },
+    {
+      "text": "remote",
+      "start_ms": 14760,
+      "end_ms": 14970,
+      "speaker_id": "B"
+    },
+    {
+      "text": "control",
+      "start_ms": 14970,
+      "end_ms": 15960,
+      "speaker_id": "B"
+    },
+    {
+      "text": "and",
+      "start_ms": 15960,
+      "end_ms": 16400,
+      "speaker_id": "B"
+    },
+    {
+      "text": "um",
+      "start_ms": 16400,
+      "end_ms": 17340,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Oh",
+      "start_ms": 17340,
+      "end_ms": 17710,
+      "speaker_id": "B"
+    },
+    {
+      "text": "I",
+      "start_ms": 17710,
+      "end_ms": 17770,
+      "speaker_id": "B"
+    },
+    {
+      "text": "have",
+      "start_ms": 17770,
+      "end_ms": 17900,
+      "speaker_id": "B"
+    },
+    {
+      "text": "to",
+      "start_ms": 17900,
+      "end_ms": 18040,
+      "speaker_id": "B"
+    },
+    {
+      "text": "record",
+      "start_ms": 18040,
+      "end_ms": 18400,
+      "speaker_id": "B"
+    },
+    {
+      "text": "who's",
+      "start_ms": 18400,
+      "end_ms": 18550,
+      "speaker_id": "B"
+    },
+    {
+      "text": "here",
+      "start_ms": 18550,
+      "end_ms": 18820,
+      "speaker_id": "B"
+    },
+    {
+      "text": "actually",
+      "start_ms": 18820,
+      "end_ms": 19570,
+      "speaker_id": "B"
+    },
+    {
+      "text": "So",
+      "start_ms": 19570,
+      "end_ms": 19830,
+      "speaker_id": "B"
+    },
+    {
+      "text": "that's",
+      "start_ms": 19830,
+      "end_ms": 21180,
+      "speaker_id": "B"
+    },
+    {
+      "text": "David",
+      "start_ms": 21180,
+      "end_ms": 21500,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Andrew",
+      "start_ms": 21500,
+      "end_ms": 21820,
+      "speaker_id": "B"
+    },
+    {
+      "text": "and",
+      "start_ms": 21820,
+      "end_ms": 21970,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Craig",
+      "start_ms": 21970,
+      "end_ms": 22340,
+      "speaker_id": "B"
+    },
+    {
+      "text": "isn't",
+      "start_ms": 22340,
+      "end_ms": 22510,
+      "speaker_id": "B"
+    },
+    {
+      "text": "it",
+      "start_ms": 22510,
+      "end_ms": 22760,
+      "speaker_id": "B"
+    },
+    {
+      "text": "And",
+      "start_ms": 25890,
+      "end_ms": 26020,
+      "speaker_id": "B"
+    },
+    {
+      "text": "you",
+      "start_ms": 26020,
+      "end_ms": 26130,
+      "speaker_id": "B"
+    },
+    {
+      "text": "all",
+      "start_ms": 26130,
+      "end_ms": 26270,
+      "speaker_id": "B"
+    },
+    {
+      "text": "arrived",
+      "start_ms": 26270,
+      "end_ms": 26650,
+      "speaker_id": "B"
+    },
+    {
+      "text": "on",
+      "start_ms": 26650,
+      "end_ms": 26790,
+      "speaker_id": "B"
+    },
+    {
+      "text": "time",
+      "start_ms": 26790,
+      "end_ms": 27580,
+      "speaker_id": "B"
+    },
+    {
+      "text": "Um",
+      "start_ms": 29960,
+      "end_ms": 30630,
+      "speaker_id": "B"
+    },
+    {
+      "text": "yeah",
+      "start_ms": 30630,
+      "end_ms": 30860,
+      "speaker_id": "B"
+    },
+    {
+      "text": "so",
+      "start_ms": 30860,
+      "end_ms": 30980,
+      "speaker_id": "B"
+    }
+  ]
+}

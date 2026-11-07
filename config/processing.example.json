@@ -4,6 +4,7 @@
   "asr_context_ms": 1000,
   "diarization_block_ms": 120000,
   "threads": 4,
+  "diarization_workers": 1,
   "provider": "cpu",
   "speakers": 0,
   "denoise": false,

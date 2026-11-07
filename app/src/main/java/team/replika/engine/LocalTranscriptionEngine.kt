@@ -73,7 +73,7 @@ class LocalTranscriptionEngine(private val models: ModelFiles, private val cache
                 models.verify(force = false)
                 context.ensureActive()
                 if (state.samples > 0 && (state.pcmFile.length() == state.samples * 2 ||
-                        (state.recognizedMs == state.durationMs && (state.diarizedSamples == state.samples || options.speakers == 1)))) {
+                        (state.recognizedMs == state.durationMs && (state.diarizedSamples == state.samples || options.speakers == 1 || state.hasCompleteVoiceEvidence)))) {
                     pcm = PcmAudio(state.pcmFile, state.samples, deleteOnClose = false)
                     if (state.words.isNotEmpty()) publish()
                 } else {
@@ -143,23 +143,23 @@ class LocalTranscriptionEngine(private val models: ModelFiles, private val cache
                     state.diarizedSamples = sound.samples; save(); publish()
                 } else if (state.diarizedSamples < sound.samples && state.words.isNotEmpty()) {
                     stage("Определение участников", .62f, state.diarizedSamples / 16, sound.durationMs)
-                    val diarizer = OfflineSpeakerDiarization(config = OfflineSpeakerDiarizationConfig(
-                        segmentation = OfflineSpeakerSegmentationModelConfig(
-                            pyannote = OfflineSpeakerSegmentationPyannoteModelConfig(model = models.path("segmentation.onnx")), numThreads = threads, provider = options.provider),
-                        embedding = SpeakerEmbeddingExtractorConfig(model = models.path("embedding.onnx"), numThreads = threads, provider = options.provider),
-                        clustering = FastClusteringConfig(threshold = .5f), minDurationOn = .15f, minDurationOff = .3f))
+                    val modelLoadStarted = System.nanoTime()
+                    val pool = if (state.hasCompleteVoiceEvidence) null else DiarizerPool(models, threads, options.provider, options.actualDiarizationWorkers)
+                    val diarizer = pool?.engines?.first()
+                    state.diarizationMetrics["native_model_load_ms"] = if (pool == null) 0 else (System.nanoTime()-modelLoadStarted)/1_000_000
                     try {
-                        check(diarizer.sampleRate() == PcmAudio.RATE)
-                        LongDiarization.process(sound, diarizer, models, threads, checkpoint = state, expectedSpeakers = options.speakers, onBlock = {
+                        check(diarizer == null || diarizer.sampleRate() == PcmAudio.RATE)
+                        LongDiarization.process(sound, diarizer, models, threads, checkpoint = state, expectedSpeakers = options.speakers,
+                            parallelDiarizers = pool?.engines?.takeIf { it.size == 2 } ?: emptyList(), onBlock = {
                             save(); publish(); context.ensureActive()
-                        }) { fraction ->
+                        }, onReconcile = { stage("Согласование участников по всей записи", .86f) }) { fraction ->
                             val from = state.diarizedSamples / 16
-                            val to = minOf(from + 120_000, sound.durationMs)
+                            val to = minOf(from + 120_000*options.actualDiarizationWorkers, sound.durationMs)
                             stage("Определение участников", .62f + .25f * fraction,
                                 (sound.durationMs * fraction).toLong(), sound.durationMs,
                                 "Участок ${clockText(from)}–${clockText(to)} из ${clockText(sound.durationMs)}", "speaker:$from")
                         }
-                    } finally { diarizer.release() }
+                    } finally { pool?.close() }
                 } else if (state.words.isEmpty()) state.diarizedSamples = sound.samples
                 context.ensureActive()
                 stage("Сборка реплик", .87f)

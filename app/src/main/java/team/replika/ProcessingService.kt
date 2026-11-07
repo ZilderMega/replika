@@ -33,7 +33,7 @@ class ProcessingService : Service() {
         val llm = intent.getBooleanExtra("llm", false)
         val fragment = intent.getBooleanExtra("fragment", false)
         val options = ProcessingOptions(intent.getBooleanExtra("denoise", false), intent.getBooleanExtra("vad", false),
-            intent.getIntExtra("threads", 4), intent.getStringExtra("provider") ?: "cpu", intent.getIntExtra("speakers", 0))
+            intent.getIntExtra("threads", 4), intent.getStringExtra("provider") ?: "cpu", intent.getIntExtra("speakers", 0), intent.getIntExtra("diarization_workers", 1))
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel("processing", "Расшифровка записей", NotificationManager.IMPORTANCE_LOW))
         startForeground(11, notification("Подготовка записи"))
@@ -104,16 +104,28 @@ class ProcessingService : Service() {
                         stageCompleted = progress.completed, stageTotal = progress.total, unitKey = progress.unitKey) }
                 }
                 if (fragment) {
+                    if (intent.getBooleanExtra("voice_anchor", false)) {
+                        val snapshot = File(directory, "anchor-transcript.json")
+                        try {
+                            val transcript = PipelineCheckpoint.transcript(JSONObject(snapshot.readText()))
+                            val anchor = Utterance(intent.getStringExtra("speaker") ?: "", intent.getLongExtra("start_ms", 0), intent.getLongExtra("end_ms", 0), "")
+                            val suggestions = SpeakerAssistance.confirmAndSuggest(sourceFile, ModelFiles(File(filesDir, "models")), cacheDir, checkpoint, anchor, transcript, ::report)
+                            mutable.update { it.copy(speakerSuggestions = suggestions, stage = "Голос подтверждён: проверьте похожие реплики") }
+                        } finally { snapshot.delete() }
+                        return@launch
+                    }
                     val candidate = FragmentProcessor.process(sourceFile, ModelFiles(File(filesDir, "models")), cacheDir,
                         intent.getLongExtra("start_ms", 0), intent.getLongExtra("end_ms", 0), intent.getStringExtra("speaker") ?: "speaker_unknown",
-                        intent.getBooleanExtra("mixed", false), intent.getBooleanExtra("separate", false), options.denoise, ::report)
+                        intent.getBooleanExtra("mixed", false), intent.getBooleanExtra("separate", false), options.denoise,
+                        speakerTurns = intent.getBooleanExtra("speaker_turns", false), originalText = intent.getStringExtra("original_text") ?: "",
+                        sourceWords = checkpoint.words, progress = ::report)
                     mutable.update { it.copy(fragment = candidate, stage = "Фрагмент готов: проверьте результат") }
                     return@launch
                 }
                 withContext(Dispatchers.IO) {
                     PipelineCheckpoint.writeAtomically(File(directory, "options.json"), org.json.JSONObject()
                         .put("denoise", options.denoise).put("vad", options.filterPauses).put("threads", options.threads).put("provider", options.provider)
-                        .put("speakers", options.speakers).toString())
+                        .put("speakers", options.speakers).put("diarization_workers", options.diarizationWorkers).toString())
                 }
                 val result = LocalTranscriptionEngine(ModelFiles(File(filesDir, "models")), cacheDir).process(
                     sourceFile, useLlm = llm, checkpointDir = directory, options = options, forceDiarization = intent.getBooleanExtra("force_diarization", false),

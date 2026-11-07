@@ -19,7 +19,9 @@ class LocalSeparation(path: String, threads: Int) : AutoCloseable {
 object FragmentProcessor {
     suspend fun process(input: File, models: ModelFiles, cacheDir: File, start: Long, end: Long,
         speaker: String, mixedLanguage: Boolean, separate: Boolean, denoise: Boolean,
+        speakerTurns: Boolean = false, originalText: String = "", sourceWords: List<Word> = emptyList(),
         progress: (EngineProgress) -> Unit): Transcript = withContext(Dispatchers.Default) {
+        if (speakerTurns) return@withContext SpeakerTurnRefinement.process(input, models, cacheDir, start, end, originalText, sourceWords, progress)
         require(start >= 0 && end > start && end - start <= 30_000) { "Выберите фрагмент до 30 секунд" }
         require(!mixedLanguage || end - start <= 29_000) { "Для Whisper выберите фрагмент до 29 секунд" }
         require(!separate || end - start in 100..6000) { "Для разделения голосов выберите от 0,1 до 6 секунд" }
@@ -59,7 +61,7 @@ object FragmentProcessor {
                         i.toLong(), sources.size.toLong(), "Дорожка ${i + 1} из ${sources.size}", "fragment-asr:$i"))
                     val stream = recognizer.createStream()
                     val text = try {
-                        stream.acceptWaveform(samples.copyOf(maxOf(samples.size, 16000)), 16000)
+                        stream.acceptWaveform(if (samples.size < 16000) samples.copyOf(16000) else samples, 16000)
                         recognizer.decode(stream)
                         currentCoroutineContext().ensureActive()
                         recognizer.getResult(stream).text.trim()

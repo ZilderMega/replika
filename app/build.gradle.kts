@@ -24,7 +24,7 @@ android {
 }
 val modelNames = listOf("encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt", "segmentation.onnx", "embedding.onnx", "llm.gguf",
     "punctuation.onnx", "punctuation-tokenizer.json", "punctuation-config.json", "denoise.onnx", "vad.onnx",
-    "whisper-encoder.onnx", "whisper-decoder.onnx", "whisper-tokens.txt", "separation.onnx", "manifest.json")
+    "whisper-encoder.onnx", "whisper-decoder.onnx", "whisper-tokens.txt", "separation.onnx", "speaker-refinement.onnx", "manifest.json")
 // Development-only code update over slow wireless ADB. Requires the exact, verified model bundle already installed.
 // The normal build remains self-contained; never submit the APK built with this property.
 val reuseInstalledModels = providers.gradleProperty("reuseInstalledModels").map { it.toBoolean() }.getOrElse(false)

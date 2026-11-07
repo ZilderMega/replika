@@ -16,7 +16,7 @@ data class VoiceObservation(val localId: Int, val intervals: List<LongRange>, va
 
 /** Anonymous voice clustering, not proof of a person's identity. Similarity thresholds need corpus calibration. */
 object VoiceMatcher {
-    const val VERSION = 3
+    const val VERSION = 4
     private const val MATCH = .74f
     private const val FIRST_PROFILE_MATCH = .80f
     private const val MARGIN = .08f
@@ -49,10 +49,11 @@ object VoiceMatcher {
         return .65f * cosine(profile.centroid, vector) + .35f * (closest.average().takeIf { it.isFinite() }?.toFloat() ?: -1f)
     }
 
-    fun assign(observations: List<VoiceObservation>, profiles: MutableList<VoiceProfile>, expectedSpeakers: Int = 0): Map<Int, Int> {
+    fun assign(observations: List<VoiceObservation>, profiles: MutableList<VoiceProfile>, expectedSpeakers: Int = 0,
+        fixedAssignments: Map<Int, Int> = emptyMap()): Map<Int, Int> {
         val valid = observations.filter { it.vector != null && it.embeddings.isNotEmpty() && it.consistent }
         val vectors = valid.associate { it.localId to requireNotNull(it.vector) }
-        val mapping = linkedMapOf<Int, Int>()
+        val mapping = fixedAssignments.filter { (local, global) -> local in vectors && global in profiles.indices }.toMutableMap()
         val initialCount = profiles.size
         fun compatible(observation: VoiceObservation, target: Int): Boolean = mapping.filterValues { it == target }.keys.all { otherId ->
             val other = valid.first { it.localId == otherId }
@@ -66,6 +67,7 @@ object VoiceMatcher {
             scores.firstOrNull()?.second?.minus(scores.getOrNull(1)?.second ?: 0f) ?: -1f
         }
         ordered.forEach { observation ->
+            if (observation.localId in mapping) return@forEach
             val scores = ranked(observation, initialCount)
             val best = scores.firstOrNull() ?: return@forEach
             val threshold = if (observation.supportMs < 1000) .88f else if (initialCount == 1) FIRST_PROFILE_MATCH else MATCH

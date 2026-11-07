@@ -7,11 +7,12 @@ import java.io.File
 import java.io.OutputStream
 
 data class ProcessingOptions(val denoise: Boolean = false, val filterPauses: Boolean = false,
-    val threads: Int = 4, val provider: String = "cpu", val speakers: Int = 0) {
-    init { require(threads in 1..8); require(provider in listOf("cpu", "nnapi")); require(speakers in 0..8) }
+    val threads: Int = 4, val provider: String = "cpu", val speakers: Int = 0, val diarizationWorkers: Int = 1) {
+    init { require(threads in 1..8); require(provider in listOf("cpu", "nnapi")); require(speakers in 0..8); require(diarizationWorkers in 1..2) }
     // Speaker settings must not invalidate cached ASR or prepared audio; retain the old signature format.
     val audioSignature get() = "ProcessingOptions(denoise=$denoise, filterPauses=$filterPauses, threads=$threads, provider=$provider)"
     val actualThreads get() = threads.coerceAtMost(Runtime.getRuntime().availableProcessors()).coerceAtLeast(1)
+    val actualDiarizationWorkers get() = if (provider == "cpu" && actualThreads >= 2) diarizationWorkers else 1
 }
 
 object AudioPreparation {

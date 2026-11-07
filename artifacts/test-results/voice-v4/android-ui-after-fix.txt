@@ -1,0 +1,7 @@
+
+team.replika.SpeakerAnchorUiTest:.
+team.replika.EditorUiTest:.
+
+Time: 35.1
+
+OK (2 tests)

@@ -76,6 +76,7 @@ private fun App() {
     var options by remember { mutableStateOf(ProcessingOptions()) }
     var advanced by rememberSaveable { mutableStateOf(false) }
     var editor by remember { mutableStateOf<Pair<Int, Transcript>?>(null) }
+    var voiceReview by remember { mutableStateOf<Triple<String, Transcript, Long>?>(null) }
     var exportJson by remember { mutableStateOf<String?>(null) }
     var useLlm by rememberSaveable { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
@@ -175,6 +176,7 @@ private fun App() {
     }
     val notifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     fun beginProcessing(punctuation: Boolean, forceSpeakers: Boolean = false) {
+        voiceReview = null
         val session = selected ?: return
         player?.release(); player = null; playing = false; preparing = false; position = 0; duration = 0
         engine.transcribe(Uri.parse(session.uri), session.id, punctuation, options, forceSpeakers)
@@ -216,17 +218,38 @@ private fun App() {
     val ink = Color(0xFF252321)
     val muted = Color(0xFF625C56)
     val paper = Color(0xFFF5F0E8)
+    fun pauseVoicePreview() {
+        if (preparing) { player?.release(); player = null; preparing = false }
+        else try { player?.pause() } catch (_: IllegalStateException) { }
+        playing = false
+    }
     val accent = Color(0xFF9B3F2E)
     val typography = Typography().let { base ->
         val family = FontFamily(Font(R.font.manrope))
         base.copy(bodyLarge = base.bodyLarge.copy(fontFamily = family), bodyMedium = base.bodyMedium.copy(fontFamily = family), titleLarge = base.titleLarge.copy(fontFamily = family), titleMedium = base.titleMedium.copy(fontFamily = family), headlineMedium = base.headlineMedium.copy(fontFamily = family), labelLarge = base.labelLarge.copy(fontFamily = family))
     }
     MaterialTheme(colorScheme = lightColorScheme(primary = accent, background = paper, surface = paper, onSurface = ink), typography = typography) {
+        voiceReview?.takeIf { !engineState.busy && it.first == selectedId && engineState.speakerSuggestionSerial >= it.third }?.let { review ->
+            SpeakerSuggestionsDialog(engineState.speakerSuggestions, engineState.error ?: message,
+                onListen = { play(it.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()) }, onPause = ::pauseVoicePreview, onApply = { suggestions ->
+                require(displayTranscript.toJson() == review.second.toJson()) { "Стенограмма изменилась. Повторите поиск." }
+                val result = TranscriptTools.applySpeakerSuggestions(review.second, suggestions)
+                val index = sessions.indexOfFirst { it.id == review.first }
+                require(index >= 0)
+                sessions[index] = sessions[index].copy(edited = result.toJson()); save(); showReviewed = true; pauseVoicePreview(); voiceReview = null
+            }, onClose = { pauseVoicePreview(); voiceReview = null })
+        }
         editor?.let { selection ->
             val line = selection.second.utterances[selection.first]
             val duration = activeState?.preview?.durationMs ?: selection.second.utterances.maxOfOrNull { it.endMs } ?: line.endMs
             TranscriptEditor(line, engineState, duration,
-                onRefine = { target, mixed, separate, denoise -> selected?.let { engine.refine(Uri.parse(it.uri), it.id, target, mixed, separate, denoise) } },
+                onRefine = { target, mixed, separate, denoise, turns -> selected?.let { engine.refine(Uri.parse(it.uri), it.id, target, mixed, separate, denoise, turns) } },
+                onConfirmVoice = { target -> selected?.let {
+                    require(target.endMs-target.startMs in 2000..9000 && target.speakerId.matches(Regex("speaker_[1-9][0-9]*"))) { "Выберите 2–9 секунд и подтверждённый ID, например speaker_2" }
+                    val request = engine.confirmVoice(Uri.parse(it.uri), it.id, target, selection.second) ?: error("Дождитесь завершения текущей обработки")
+                    voiceReview = Triple(it.id, selection.second, request)
+                    editor = null
+                } },
                 onSave = { replacement, allSpeaker ->
                     val base = if (allSpeaker) TranscriptTools.reassignSpeaker(selection.second, line.speakerId, replacement.first().speakerId) else selection.second
                     val result = TranscriptTools.replace(base, selection.first, replacement, duration)
@@ -305,8 +328,13 @@ private fun App() {
                         Slider(options.speakers.toFloat(), { options = options.copy(speakers = it.toInt()) }, valueRange = 0f..8f, steps = 7)
                         Text("Авто — определить голоса; 1 — вся запись с одним участником; 2–8 — верхняя граница числа голосов. Неоднозначные участки требуют проверки.", color = muted, fontSize = 13.sp)
                         if (selected.transcript != null && activeState?.resumable != true) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(options.diarizationWorkers == 2, { options = options.copy(diarizationWorkers = if (it) 2 else 1) }, enabled = options.provider == "cpu" && options.threads >= 2 && engineState.modelsReady)
+                                Text("Готовить голоса двумя блоками — эксперимент")
+                            }
+                            Text("Требует больше памяти. Готовый кэш сопоставляется без нативных блоков; для первой подготовки ускорение зависит от устройства.", color = muted, fontSize = 13.sp)
                             OutlinedButton(onClick = { beginProcessing(activeState?.useLlm == true, true) }, enabled = engineState.modelsReady) { Text("Пересчитать участников") }
-                            Text("Сохраняет распознанные слова; заново определяет участников и пунктуацию. Правки можно экспортировать перед пересчётом.", color = muted, fontSize = 13.sp)
+                            Text("Сохраняет распознанные слова. Если голосовые образцы уже подготовлены, сопоставляет их без повторной обработки аудио. Для старых записей первый пересчёт готовит образцы и может быть долгим. Правки можно экспортировать заранее.", color = muted, fontSize = 13.sp)
                         }
                     }
                     if (!engineState.busy && (selected.transcript == null || activeState?.resumable == true)) {
@@ -317,6 +345,11 @@ private fun App() {
                                 Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(options.filterPauses, { options = options.copy(filterPauses = it) }); Text("Пропускать паузы (VAD)") }
                                 Text("Потоков: ${options.threads}")
                                 Slider(options.threads.toFloat(), { options = options.copy(threads = it.toInt()) }, valueRange = 1f..8f, steps = 6)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Checkbox(options.diarizationWorkers == 2, { options = options.copy(diarizationWorkers = if (it) 2 else 1) }, enabled = options.provider == "cpu" && options.threads >= 2)
+                                    Text("Два блока одновременно — эксперимент")
+                                }
+                                Text("Делит выбранные CPU-потоки между двумя блоками. Требует больше памяти; выгода зависит от устройства. По умолчанию выключено.", color = muted, fontSize = 13.sp)
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     FilterChip(options.provider == "cpu", { options = options.copy(provider = "cpu") }, label = { Text("CPU") })
                                     FilterChip(options.provider == "nnapi", { options = options.copy(provider = "nnapi") }, label = { Text("NNAPI") })

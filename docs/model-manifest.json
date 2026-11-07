@@ -17,6 +17,10 @@
     "whisper-tokens.txt": "b34b360dbb493e781e479794586d661700670d65564001f23024971d1f2fa126",
     "separation.onnx": "22185d8e13bf5251c0eeab09e52099ac76c063cd9a5e5df1f5c242f535f6f151"
   },
+  "extra_sha256": {
+    "speaker-refinement.onnx": "5ef208a9da1453335308a6b6f4e6dfbd7e183a38b604de0a57664f45d257fe94"
+  },
+  "extra_note": "Pinned independently in ModelFiles.EXTRA_HASHES; the base assets/models/manifest.json stays unchanged to preserve ASR checkpoints.",
   "schema": 1,
   "profile": "zipformer-ru-small-2024-09-18_pyannote3_campplus_qwen2.5-0.5b"
 }

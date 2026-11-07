@@ -1,0 +1,521 @@
+{
+  "device": "sdk_gphone64_x86_64",
+  "voice_matcher_version": 4,
+  "workers": [
+    {
+      "workers": 1,
+      "threads_per_worker": 4,
+      "samples_ms": [
+        6304,
+        6207,
+        6208
+      ],
+      "median_ms": 6208,
+      "max_sampled_pss_mib": 271.44921875,
+      "scores": [
+        {
+          "fixture": "ami-development.wav",
+          "score": {
+            "der": 0.3883340155546459,
+            "missed_speaker_ms": 387,
+            "false_speaker_ms": 342,
+            "confused_speaker_ms": 8758,
+            "reference_speaker_ms": 24430,
+            "speaker_mapping": {
+              "speaker_0": "MEE008",
+              "speaker_2": "FEE005",
+              "speaker_3": null,
+              "speaker_4": "MEE006"
+            },
+            "collar_ms": 0,
+            "ignore_overlap": false
+          }
+        },
+        {
+          "fixture": "ami-holdout.wav",
+          "score": {
+            "der": 0.39283854166666665,
+            "missed_speaker_ms": 1264,
+            "false_speaker_ms": 347,
+            "confused_speaker_ms": 7440,
+            "reference_speaker_ms": 23040,
+            "speaker_mapping": {
+              "speaker_0": "MEE007",
+              "speaker_2": "MEE006",
+              "speaker_3": "MEE008",
+              "speaker_5": "FEE005"
+            },
+            "collar_ms": 0,
+            "ignore_overlap": false
+          }
+        },
+        {
+          "fixture": "ami-development.wav",
+          "score": {
+            "der": 0.3883340155546459,
+            "missed_speaker_ms": 387,
+            "false_speaker_ms": 342,
+            "confused_speaker_ms": 8758,
+            "reference_speaker_ms": 24430,
+            "speaker_mapping": {
+              "speaker_0": "MEE008",
+              "speaker_2": "FEE005",
+              "speaker_3": null,
+              "speaker_4": "MEE006"
+            },
+            "collar_ms": 0,
+            "ignore_overlap": false
+          }
+        },
+        {
+          "fixture": "ami-holdout.wav",
+          "score": {
+            "der": 0.39283854166666665,
+            "missed_speaker_ms": 1264,
+            "false_speaker_ms": 347,
+            "confused_speaker_ms": 7440,
+            "reference_speaker_ms": 23040,
+            "speaker_mapping": {
+              "speaker_0": "MEE007",
+              "speaker_2": "MEE006",
+              "speaker_3": "MEE008",
+              "speaker_5": "FEE005"
+            },
+            "collar_ms": 0,
+            "ignore_overlap": false
+          }
+        },
+        {
+          "fixture": "ami-development.wav",
+          "score": {
+            "der": 0.3883340155546459,
+            "missed_speaker_ms": 387,
+            "false_speaker_ms": 342,
+            "confused_speaker_ms": 8758,
+            "reference_speaker_ms": 24430,
+            "speaker_mapping": {
+              "speaker_0": "MEE008",
+              "speaker_2": "FEE005",
+              "speaker_3": null,
+              "speaker_4": "MEE006"
+            },
+            "collar_ms": 0,
+            "ignore_overlap": false
+          }
+        },
+        {
+          "fixture": "ami-holdout.wav",
+          "score": {
+            "der": 0.39283854166666665,
+            "missed_speaker_ms": 1264,
+            "false_speaker_ms": 347,
+            "confused_speaker_ms": 7440,
+            "reference_speaker_ms": 23040,
+            "speaker_mapping": {
+              "speaker_0": "MEE007",
+              "speaker_2": "MEE006",
+              "speaker_3": "MEE008",
+              "speaker_5": "FEE005"
+            },
+            "collar_ms": 0,
+            "ignore_overlap": false
+          }
+        }
+      ]
+    },
+    {
+      "workers": 2,
+      "threads_per_worker": 2,
+      "samples_ms": [
+        4326,
+        4200,
+        4285
+      ],
+      "median_ms": 4285,
+      "max_sampled_pss_mib": 388.853515625,
+      "scores": [
+        {
+          "fixture": "ami-development.wav",
+          "score": {
+            "der": 0.3883340155546459,
+            "missed_speaker_ms": 387,
+            "false_speaker_ms": 342,
+            "confused_speaker_ms": 8758,
+            "reference_speaker_ms": 24430,
+            "speaker_mapping": {
+              "speaker_0": "MEE008",
+              "speaker_2": "FEE005",
+              "speaker_3": null,
+              "speaker_4": "MEE006"
+            },
+            "collar_ms": 0,
+            "ignore_overlap": false
+          }
+        },
+        {
+          "fixture": "ami-holdout.wav",
+          "score": {
+            "der": 0.39283854166666665,
+            "missed_speaker_ms": 1264,
+            "false_speaker_ms": 347,
+            "confused_speaker_ms": 7440,
+            "reference_speaker_ms": 23040,
+            "speaker_mapping": {
+              "speaker_0": "MEE007",
+              "speaker_2": "MEE006",
+              "speaker_3": "MEE008",
+              "speaker_5": "FEE005"
+            },
+            "collar_ms": 0,
+            "ignore_overlap": false
+          }
+        },
+        {
+          "fixture": "ami-development.wav",
+          "score": {
+            "der": 0.3883340155546459,
+            "missed_speaker_ms": 387,
+            "false_speaker_ms": 342,
+            "confused_speaker_ms": 8758,
+            "reference_speaker_ms": 24430,
+            "speaker_mapping": {
+              "speaker_0": "MEE008",
+              "speaker_2": "FEE005",
+              "speaker_3": null,
+              "speaker_4": "MEE006"
+            },
+            "collar_ms": 0,
+            "ignore_overlap": false
+          }
+        },
+        {
+          "fixture": "ami-holdout.wav",
+          "score": {
+            "der": 0.39283854166666665,
+            "missed_speaker_ms": 1264,
+            "false_speaker_ms": 347,
+            "confused_speaker_ms": 7440,
+            "reference_speaker_ms": 23040,
+            "speaker_mapping": {
+              "speaker_0": "MEE007",
+              "speaker_2": "MEE006",
+              "speaker_3": "MEE008",
+              "speaker_5": "FEE005"
+            },
+            "collar_ms": 0,
+            "ignore_overlap": false
+          }
+        },
+        {
+          "fixture": "ami-development.wav",
+          "score": {
+            "der": 0.3883340155546459,
+            "missed_speaker_ms": 387,
+            "false_speaker_ms": 342,
+            "confused_speaker_ms": 8758,
+            "reference_speaker_ms": 24430,
+            "speaker_mapping": {
+              "speaker_0": "MEE008",
+              "speaker_2": "FEE005",
+              "speaker_3": null,
+              "speaker_4": "MEE006"
+            },
+            "collar_ms": 0,
+            "ignore_overlap": false
+          }
+        },
+        {
+          "fixture": "ami-holdout.wav",
+          "score": {
+            "der": 0.39283854166666665,
+            "missed_speaker_ms": 1264,
+            "false_speaker_ms": 347,
+            "confused_speaker_ms": 7440,
+            "reference_speaker_ms": 23040,
+            "speaker_mapping": {
+              "speaker_0": "MEE007",
+              "speaker_2": "MEE006",
+              "speaker_3": "MEE008",
+              "speaker_5": "FEE005"
+            },
+            "collar_ms": 0,
+            "ignore_overlap": false
+          }
+        }
+      ]
+    }
+  ],
+  "parallel_reduction_fraction": 0.3097615979381443,
+  "scheduling_same_native_spans": true,
+  "global_matcher_scores": [
+    {
+      "fixture": "ami-development.wav",
+      "threshold": 0.5,
+      "score": {
+        "der": 0.3883340155546459,
+        "missed_speaker_ms": 387,
+        "false_speaker_ms": 342,
+        "confused_speaker_ms": 8758,
+        "reference_speaker_ms": 24430,
+        "speaker_mapping": {
+          "speaker_0": "FEE005",
+          "speaker_review_2": "MEE008",
+          "speaker_review_3": null,
+          "speaker_review_4": "MEE006"
+        },
+        "collar_ms": 0,
+        "ignore_overlap": false
+      }
+    },
+    {
+      "fixture": "ami-development.wav",
+      "threshold": 0.35,
+      "score": {
+        "der": 0.3883340155546459,
+        "missed_speaker_ms": 387,
+        "false_speaker_ms": 342,
+        "confused_speaker_ms": 8758,
+        "reference_speaker_ms": 24430,
+        "speaker_mapping": {
+          "speaker_0": null,
+          "speaker_1": "FEE005",
+          "speaker_review_2": "MEE008",
+          "speaker_review_3": null,
+          "speaker_review_4": "MEE006"
+        },
+        "collar_ms": 0,
+        "ignore_overlap": false
+      }
+    },
+    {
+      "fixture": "ami-development.wav",
+      "threshold": 0.25,
+      "score": {
+        "der": 0.4294719607040524,
+        "missed_speaker_ms": 437,
+        "false_speaker_ms": 342,
+        "confused_speaker_ms": 9713,
+        "reference_speaker_ms": 24430,
+        "speaker_mapping": {
+          "speaker_0": "MEE008",
+          "speaker_review_2": null,
+          "speaker_review_3": "FEE005",
+          "speaker_review_4": null,
+          "speaker_review_5": "MEE006"
+        },
+        "collar_ms": 0,
+        "ignore_overlap": false
+      }
+    },
+    {
+      "fixture": "ami-holdout.wav",
+      "threshold": 0.5,
+      "score": {
+        "der": 0.39283854166666665,
+        "missed_speaker_ms": 1264,
+        "false_speaker_ms": 347,
+        "confused_speaker_ms": 7440,
+        "reference_speaker_ms": 23040,
+        "speaker_mapping": {
+          "speaker_0": "MEE006",
+          "speaker_1": "MEE008",
+          "speaker_review_2": "MEE007",
+          "speaker_review_3": "FEE005"
+        },
+        "collar_ms": 0,
+        "ignore_overlap": false
+      }
+    },
+    {
+      "fixture": "ami-holdout.wav",
+      "threshold": 0.35,
+      "score": {
+        "der": 0.46827256944444445,
+        "missed_speaker_ms": 1281,
+        "false_speaker_ms": 381,
+        "confused_speaker_ms": 9127,
+        "reference_speaker_ms": 23040,
+        "speaker_mapping": {
+          "speaker_0": "MEE006",
+          "speaker_1": "MEE008",
+          "speaker_2": "MEE007",
+          "speaker_review_2": null,
+          "speaker_review_3": "FEE005",
+          "speaker_review_4": null
+        },
+        "collar_ms": 0,
+        "ignore_overlap": false
+      }
+    },
+    {
+      "fixture": "ami-holdout.wav",
+      "threshold": 0.25,
+      "score": {
+        "der": 0.4700520833333333,
+        "missed_speaker_ms": 1254,
+        "false_speaker_ms": 422,
+        "confused_speaker_ms": 9154,
+        "reference_speaker_ms": 23040,
+        "speaker_mapping": {
+          "speaker_0": "MEE006",
+          "speaker_1": "MEE008",
+          "speaker_review_2": "MEE007",
+          "speaker_review_3": null,
+          "speaker_review_4": "FEE005",
+          "speaker_review_5": null
+        },
+        "collar_ms": 0,
+        "ignore_overlap": false
+      }
+    }
+  ],
+  "window_experiments": [
+    {
+      "fixture": "ami-development.wav",
+      "block_seconds": 120,
+      "elapsed_ms": 3642,
+      "score": {
+        "der": 0.3883340155546459,
+        "missed_speaker_ms": 387,
+        "false_speaker_ms": 342,
+        "confused_speaker_ms": 8758,
+        "reference_speaker_ms": 24430,
+        "speaker_mapping": {
+          "speaker_0": "FEE005",
+          "speaker_review_2": "MEE008",
+          "speaker_review_3": null,
+          "speaker_review_4": "MEE006"
+        },
+        "collar_ms": 0,
+        "ignore_overlap": false
+      }
+    },
+    {
+      "fixture": "ami-development.wav",
+      "block_seconds": 8,
+      "elapsed_ms": 1627,
+      "score": {
+        "der": 0.12099877200163733,
+        "missed_speaker_ms": 371,
+        "false_speaker_ms": 595,
+        "confused_speaker_ms": 1990,
+        "reference_speaker_ms": 24430,
+        "speaker_mapping": {
+          "speaker_0": "FEE005",
+          "speaker_1": "MEE006",
+          "speaker_review_2": null,
+          "speaker_review_3": "MEE008"
+        },
+        "collar_ms": 0,
+        "ignore_overlap": false
+      }
+    },
+    {
+      "fixture": "ami-development.wav",
+      "block_seconds": 6,
+      "elapsed_ms": 1562,
+      "score": {
+        "der": 0.31305771592304543,
+        "missed_speaker_ms": 1675,
+        "false_speaker_ms": 222,
+        "confused_speaker_ms": 5751,
+        "reference_speaker_ms": 24430,
+        "speaker_mapping": {
+          "speaker_0": "FEE005",
+          "speaker_1": "MEE006",
+          "speaker_review_2": null,
+          "speaker_review_3": null,
+          "speaker_review_4": null,
+          "speaker_review_5": "MEE008"
+        },
+        "collar_ms": 0,
+        "ignore_overlap": false
+      }
+    },
+    {
+      "fixture": "ami-holdout.wav",
+      "block_seconds": 120,
+      "elapsed_ms": 3924,
+      "score": {
+        "der": 0.39283854166666665,
+        "missed_speaker_ms": 1264,
+        "false_speaker_ms": 347,
+        "confused_speaker_ms": 7440,
+        "reference_speaker_ms": 23040,
+        "speaker_mapping": {
+          "speaker_0": "MEE006",
+          "speaker_1": "MEE008",
+          "speaker_review_2": "MEE007",
+          "speaker_review_3": "FEE005"
+        },
+        "collar_ms": 0,
+        "ignore_overlap": false
+      }
+    },
+    {
+      "fixture": "ami-holdout.wav",
+      "block_seconds": 8,
+      "elapsed_ms": 1451,
+      "score": {
+        "der": 0.5491319444444445,
+        "missed_speaker_ms": 999,
+        "false_speaker_ms": 1502,
+        "confused_speaker_ms": 10151,
+        "reference_speaker_ms": 23040,
+        "speaker_mapping": {
+          "speaker_0": "MEE006",
+          "speaker_1": "MEE007",
+          "speaker_2": null,
+          "speaker_review_2": null,
+          "speaker_review_3": "MEE008",
+          "speaker_review_4": "FEE005"
+        },
+        "collar_ms": 0,
+        "ignore_overlap": false
+      }
+    },
+    {
+      "fixture": "ami-holdout.wav",
+      "block_seconds": 6,
+      "elapsed_ms": 1901,
+      "score": {
+        "der": 0.47604166666666664,
+        "missed_speaker_ms": 1176,
+        "false_speaker_ms": 316,
+        "confused_speaker_ms": 9476,
+        "reference_speaker_ms": 23040,
+        "speaker_mapping": {
+          "speaker_0": "MEE006",
+          "speaker_1": "FEE005",
+          "speaker_2": "MEE007",
+          "speaker_review_2": "MEE008",
+          "speaker_review_3": null
+        },
+        "collar_ms": 0,
+        "ignore_overlap": false
+      }
+    }
+  ],
+  "refinement_ms": 4326,
+  "refinement_with_human_word_times_der": {
+    "der": 0.03029062627916496,
+    "missed_speaker_ms": 390,
+    "false_speaker_ms": 0,
+    "confused_speaker_ms": 350,
+    "reference_speaker_ms": 24430,
+    "speaker_mapping": {
+      "speaker_review_1": "FEE005",
+      "speaker_review_3": "MEE006"
+    },
+    "collar_ms": 0,
+    "ignore_overlap": false
+  },
+  "rematch_ms": 443,
+  "rematch_native_calls": 0,
+  "limitations": [
+    "Same two AMI excerpts used during development, not a new independent corpus",
+    "Refinement alignment uses human English word times; not full ASR-plus-diarization accuracy",
+    "Fixed-order 3-repeat scheduling benchmark; sampled PSS, not guaranteed peak",
+    "No full 82-minute v4 run or new Samsung timing; old phone report remains v1/v3 evidence"
+  ]
+}

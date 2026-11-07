@@ -1,12 +1,17 @@
 {
   "version": "0.6.0",
   "date": "2026-11-07",
+  "voice_matcher_version": 4,
   "apk": "replika-0.6-bundled-debug.apk",
-  "sha256": "2364d7488baccfb302145ad6e622d4e4faf82c6325bac468f1ece0fa260ced2a",
-  "bytes": 791051596,
-  "jvm_tests": 41,
+  "sha256": "1c56f405552be04e88af5c091a4b5ae5f1b7a184d45b9714f2879978f8378acf",
+  "bytes": 817785893,
+  "jvm_tests": 53,
   "evaluator_tests": 6,
-  "final_samsung_tests": 4,
-  "voice_matcher_version": 3,
-  "note": "Final Samsung v3: annotated AMI, two continuity/recalculation tests, editor split. Earlier full emulator and physical benchmarks are separate runs; see docs/TEST_RESULTS.md. Standalone ARM64/x86_64 APK includes all models."
+  "targeted_android_unique_scenarios": 10,
+  "initial_targeted_run": "8/9; UI failure preserved",
+  "final_targeted_ui": "2/2 passed after fixes",
+  "additional_window_benchmark": "1/1 passed; shorter windows rejected due accuracy",
+  "tested_device": "sdk_gphone64_x86_64",
+  "physical_v4_status": "Samsung unavailable in ADB; no v4 phone or full 82-minute rerun",
+  "note": "Standalone ARM64/x86_64 APK includes pinned WeSpeaker and all base models. Parallel CPU mode is opt-in. See docs/VOICE_V4.md and voice-v4 logs."
 }
