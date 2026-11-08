@@ -35,6 +35,15 @@ class EditorUiTest {
         }
         error("No clickable ancestor for ${node.text}")
     }
+    private fun shell(command: String): String = instrumentation.uiAutomation.executeShellCommand(command).let {
+        android.os.ParcelFileDescriptor.AutoCloseInputStream(it).bufferedReader().use { reader -> reader.readText() }
+    }
+    private fun imeShown() = shell("dumpsys input_method").contains("mInputShown=true")
+    private suspend fun awaitIme(shown: Boolean, step: String) {
+        val reached = withTimeoutOrNull(10_000) { while (imeShown() != shown) delay(100); true } == true
+        if (!reached) File(context.filesDir, "keyboard-ime-dump.txt").writeText(shell("dumpsys input_method"))
+        assertTrue("IME state=$shown at $step", reached)
+    }
     @Test fun realTranscriptCanBeReviewedWithoutChangingOriginal() = runBlocking {
         BundledModels(context).prepare()
         val id = "instrumentation-editor"
@@ -50,7 +59,7 @@ class EditorUiTest {
                 android.os.ParcelFileDescriptor.AutoCloseInputStream(it).bufferedReader().use { reader -> reader.readText() }
             }
             delay(1500)
-            withTimeout(60_000) { while (ProcessingService.mutable.value.busy) delay(100) }
+            withTimeout(60_000) { while (ProcessingService.mutable.value.busy || !ProcessingService.mutable.value.modelsReady) delay(100) }
             context.startForegroundService(Intent(context, ProcessingService::class.java).putExtra("session_id", id)
                 .putExtra("uri", Uri.fromFile(File(context.filesDir, "test.wav")).toString()))
             withTimeout(30_000) { while (ProcessingService.mutable.value.sessionId != id || !ProcessingService.mutable.value.busy) delay(50) }
@@ -70,8 +79,25 @@ class EditorUiTest {
             delay(500)
             val textFields = nodes(ui.rootInActiveWindow).filter { it.isEditable }
             assertTrue(textFields.size >= 4)
+            // Regression: dismissing the IME must keep both the editor and its draft.
+            click(textFields.first())
+            awaitIme(true, "focus speaker field")
+            val speakerDraft = "speaker_keyboard_test"
+            assertTrue(tree().first { it.isEditable }.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, Bundle().apply {
+                putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, speakerDraft)
+            }))
+            click(requireNotNull(tree().firstOrNull { it.text?.toString() == "Скрыть клавиатуру" }))
+            awaitIme(false, "hide keyboard button")
+            assertTrue(tree().any { it.text?.toString() == "Редактор фрагмента" })
+            assertEquals(speakerDraft, tree().first { it.isEditable }.text.toString())
+            click(tree().first { it.isEditable })
+            awaitIme(true, "refocus speaker field")
+            shell("input keyevent 4")
+            awaitIme(false, "system Back")
+            assertTrue("Back must hide the keyboard without closing the editor", tree().any { it.text?.toString() == "Редактор фрагмента" })
+            assertEquals(speakerDraft, tree().first { it.isEditable }.text.toString())
             val changed = "Ручная правка стенограммы."
-            assertTrue(textFields.last().performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, Bundle().apply {
+            assertTrue(tree().last { it.isEditable }.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, Bundle().apply {
                 putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, changed)
             }))
             delay(300)

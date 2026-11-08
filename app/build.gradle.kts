@@ -7,6 +7,22 @@ android {
     namespace = "team.replika"
     compileSdk = 35
     defaultConfig { applicationId = "team.replika"; minSdk = 26; targetSdk = 35; versionCode = 6; versionName = "0.6.0" }
+    val releaseStore = providers.environmentVariable("REPLIKA_STORE_FILE")
+    signingConfigs {
+        if (releaseStore.isPresent) create("submission") {
+            storeFile = file(releaseStore.get())
+            storePassword = providers.environmentVariable("REPLIKA_STORE_PASSWORD").get()
+            keyAlias = providers.environmentVariable("REPLIKA_KEY_ALIAS").get()
+            keyPassword = providers.environmentVariable("REPLIKA_KEY_PASSWORD").get()
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            isDebuggable = false
+            isMinifyEnabled = false
+            if (releaseStore.isPresent) signingConfig = signingConfigs.getByName("submission")
+        }
+    }
     buildFeatures { compose = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     // sherpa JNI resolves the boxed invoke(IIJ) method of Kotlin lambda classes.

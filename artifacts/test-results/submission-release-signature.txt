@@ -1,0 +1,17 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: CN=Replika, OU=Android, O=Replika
+Signer #1 certificate SHA-256 digest: d263883c5d9f851ccc12511761df23be29636f08a2dc7ede67819dce1b1ef6e7
+Signer #1 certificate SHA-1 digest: 7f774becdc3e164ed87596158a70a58c07f18903
+Signer #1 certificate MD5 digest: 8d78555a9a4eeb947dcd440f9956c994
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 3072
+Signer #1 public key SHA-256 digest: cc4097b756e42fae0470a95460dc5af3f7763eacd86ca7e5855cce8d65b5da87
+Signer #1 public key SHA-1 digest: ffb8341f53e337a5bc6e34a5e5f6b66767ec1d76
+Signer #1 public key MD5 digest: e11d33d582d73831723da6fedc7316f7

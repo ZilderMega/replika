@@ -4,10 +4,19 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.activity.compose.BackHandler
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.Role
 import team.replika.engine.clockText
@@ -33,22 +42,46 @@ fun TranscriptEditor(line: Utterance, state: EngineUiState, durationMs: Long,
     var separate by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var requestedAfter by remember { mutableStateOf<Long?>(null) }
+    var keyboardVisible by remember { mutableStateOf(false) }
+    var hideKeyboard by remember { mutableStateOf<() -> Unit>({}) }
+    fun dismissEditor() {
+        if (keyboardVisible) hideKeyboard() else if (!state.busy) onClose()
+    }
+    val done = KeyboardActions(onDone = { hideKeyboard() })
     LaunchedEffect(state.fragment, state.fragmentSerial, state.busy) {
         if (!state.busy && state.fragment != null && requestedAfter != null && state.fragmentSerial > requestedAfter!!) {
             drafts = state.fragment.utterances.map { it.draft() }; requestedAfter = null
         }
     }
-    AlertDialog(onDismissRequest = { if (!state.busy) onClose() }, title = { Text("Редактор фрагмента") },
+    AlertDialog(onDismissRequest = ::dismissEditor,
+        properties = DialogProperties(dismissOnBackPress = false),
+        title = {
+            Column {
+                Text("Редактор фрагмента")
+                TextButton(onClick = { hideKeyboard() }) { Text("Скрыть клавиатуру") }
+            }
+        },
         text = {
+            // Dialog has its own window and focus owner. Use its IME controller,
+            // rather than the Activity's controller captured outside AlertDialog.
+            val keyboard = LocalSoftwareKeyboardController.current
+            val focus = LocalFocusManager.current
+            val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+            val hideDialogKeyboard = remember(keyboard, focus) { { focus.clearFocus(force = true); keyboard?.hide(); Unit } }
+            SideEffect { keyboardVisible = imeVisible; hideKeyboard = hideDialogKeyboard }
+            BackHandler { dismissEditor() }
             Column(Modifier.heightIn(max = 570.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text("Правки сохраняются отдельно от исходной расшифровки. Время указано в миллисекундах.")
                 drafts.forEachIndexed { index, draft ->
                     if (drafts.size > 1) Text("Реплика ${index + 1}: проверьте участника", style = MaterialTheme.typography.titleMedium)
                     fun update(change: (DraftLine) -> DraftLine) { drafts = drafts.mapIndexed { i, current -> if (i == index) change(current) else current } }
-                    OutlinedTextField(draft.speaker, { value -> update { it.copy(speaker = value) } }, label = { Text("ID участника") }, enabled = !state.busy)
+                    OutlinedTextField(draft.speaker, { value -> update { it.copy(speaker = value) } }, label = { Text("ID участника") }, enabled = !state.busy,
+                        singleLine = true, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = done)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(draft.start, { value -> update { it.copy(start = value) } }, label = { Text("Начало, мс") }, modifier = Modifier.weight(1f), enabled = !state.busy)
-                        OutlinedTextField(draft.end, { value -> update { it.copy(end = value) } }, label = { Text("Конец, мс") }, modifier = Modifier.weight(1f), enabled = !state.busy)
+                        OutlinedTextField(draft.start, { value -> update { it.copy(start = value) } }, label = { Text("Начало, мс") }, modifier = Modifier.weight(1f), enabled = !state.busy,
+                            singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done), keyboardActions = done)
+                        OutlinedTextField(draft.end, { value -> update { it.copy(end = value) } }, label = { Text("Конец, мс") }, modifier = Modifier.weight(1f), enabled = !state.busy,
+                            singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done), keyboardActions = done)
                     }
                     OutlinedTextField(draft.text, { value -> update { it.copy(text = value) } }, label = { Text("Текст") }, minLines = 3, enabled = !state.busy)
                 }
@@ -56,7 +89,8 @@ fun TranscriptEditor(line: Utterance, state: EngineUiState, durationMs: Long,
                     TextButton(onClick = { splitting = !splitting }) { Text("Разделить реплику") }
                     if (splitting) {
                         Text("Поставьте курсор в тексте на смене говорящего и укажите её время. После разделения назначьте ID обеим частям.")
-                        OutlinedTextField(splitTime, { splitTime = it }, label = { Text("Смена голоса, мс") })
+                        OutlinedTextField(splitTime, { splitTime = it }, label = { Text("Смена голоса, мс") },
+                            singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done), keyboardActions = done)
                         OutlinedButton(onClick = {
                             try {
                                 val draft = drafts.single()

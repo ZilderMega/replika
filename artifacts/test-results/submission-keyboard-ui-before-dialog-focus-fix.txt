@@ -1,0 +1,47 @@
+
+team.replika.EditorUiTest:
+Error in realTranscriptCanBeReviewedWithoutChangingOriginal(team.replika.EditorUiTest):
+java.lang.AssertionError: IME state=false at hide keyboard button
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at team.replika.EditorUiTest.awaitIme(EditorUiTest.kt:45)
+	at team.replika.EditorUiTest.access$awaitIme(EditorUiTest.kt:18)
+	at team.replika.EditorUiTest$awaitIme$1.invokeSuspend(Unknown Source:16)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+	at kotlinx.coroutines.internal.ScopeCoroutine.afterResume(Scopes.kt:35)
+	at kotlinx.coroutines.AbstractCoroutine.resumeWith(AbstractCoroutine.kt:101)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:46)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:98)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:94)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)
+	at team.replika.EditorUiTest.realTranscriptCanBeReviewedWithoutChangingOriginal(EditorUiTest.kt:47)
+
+
+Time: 26.865
+There was 1 failure:
+1) realTranscriptCanBeReviewedWithoutChangingOriginal(team.replika.EditorUiTest)
+java.lang.AssertionError: IME state=false at hide keyboard button
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at team.replika.EditorUiTest.awaitIme(EditorUiTest.kt:45)
+	at team.replika.EditorUiTest.access$awaitIme(EditorUiTest.kt:18)
+	at team.replika.EditorUiTest$awaitIme$1.invokeSuspend(Unknown Source:16)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+	at kotlinx.coroutines.internal.ScopeCoroutine.afterResume(Scopes.kt:35)
+	at kotlinx.coroutines.AbstractCoroutine.resumeWith(AbstractCoroutine.kt:101)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:46)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:98)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:94)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)
+	at team.replika.EditorUiTest.realTranscriptCanBeReviewedWithoutChangingOriginal(EditorUiTest.kt:47)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1

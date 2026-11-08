@@ -1,0 +1,6 @@
+
+team.replika.EditorUiTest:.
+
+Time: 21.5
+
+OK (1 test)

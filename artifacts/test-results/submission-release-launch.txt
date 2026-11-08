@@ -1,0 +1,7 @@
+Starting: Intent { cmp=team.replika/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: team.replika/.MainActivity
+TotalTime: 1738
+WaitTime: 1762
+Complete
