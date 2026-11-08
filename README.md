@@ -1,5 +1,7 @@
 # Реплика
 
+[Видеодемонстрация автора от 8 ноября](artifacts/demo/replika-0.6.0-user-demo.mp4) · [Скачать видео](https://github.com/ZilderMega/replika/releases/download/v0.6.0-submission/replika-0.6.0-user-demo.mp4).
+
 Android-приложение для локальной расшифровки разговоров, версия 0.6. Android 8+; ARM64 и x86_64.
 
 **Комплект сдачи 0.6.0:** [все материалы для экспертов](docs/SUBMISSION.md), [установка release APK](docs/INSTALLATION.md), [руководство пользователя](docs/USER_GUIDE.md), [модели](docs/MODELS.md), [презентация](docs/presentation/README.md), [проверка текущей сборки](docs/SUBMISSION_VALIDATION.md). Новые материалы находятся в ветке `codex/submission-release-materials`; `main` сохранён без изменений. В редакторе добавлена отдельная кнопка скрытия клавиатуры с сохранением введённого ID.
